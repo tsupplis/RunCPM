@@ -221,9 +221,9 @@ void _logBdosOut(uint8_t ch) {
 	case 40:
 		address = _cpu_regs.de; size = 3; _logMem(address, size);
 		sprintf((char *)LogBuffer, "\n");  _sys_logbuffer(LogBuffer);
-		address = glb_dma_addr; size = 8; break;
+		address = _glb_dma_addr; size = 8; break;
 	case 26:
-		address = glb_dma_addr; size = 8; break;
+		address = _glb_dma_addr; size = 8; break;
 	case 35:
 	case 36:
 		address = _cpu_regs.de; size = 3; break;

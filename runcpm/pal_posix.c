@@ -159,6 +159,7 @@ uint8_t _sys_readseq(uint8_t *filename, long fpos) {
 	uint8_t i;
 
 	FILE *file = _sys_fopen_r(&filename[0]);
+    fprintf(stderr,"read(%s,%ld)\n",filename, fpos);
 	if (file != NULL) {
 		if (!_sys_fseek(file, fpos, 0)) {
 			for (i = 0; i < 128; i++)
@@ -184,6 +185,7 @@ uint8_t _sys_writeseq(uint8_t *filename, long fpos) {
 	uint8_t result = 0xff;
 
 	FILE *file = _sys_fopen_rw(&filename[0]);
+    fprintf(stderr,"write(%s,%ld)\n",filename, fpos);
 	if (file != NULL) {
 		if (!_sys_fseek(file, fpos, 0)) {
             for(int i=0;i<128;i++) {

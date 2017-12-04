@@ -373,14 +373,14 @@ uint8_t _disk_write_seq(uint16_t fcbaddr) {
 	long fpos =	((_ram_read(CPM_FCB_S2(fcbaddr)) & DISK_MAX_S2) * DISK_BLK_S2 * DISK_BLK_SZ) +
 				(_ram_read(CPM_FCB_EX(fcbaddr)) * DISK_BLK_EX * DISK_BLK_SZ) +
 				(_ram_read(CPM_FCB_CR(fcbaddr)) * DISK_BLK_SZ);
-
+    fprintf(stderr,"in fpos=%ld\n",fpos);
     if (!_disk_select_disk(_ram_read(CPM_FCB_DR(fcbaddr)))) {
 		if (!IS_RW(fcbaddr)) {
 			_fcb_to_hostname(fcbaddr, &_glb_file_name[0]);
 			result = _sys_writeseq(&_glb_file_name[0], fpos);
 			if (!result) {	// Write succeeded, adjust FCB
                 _ram_write(CPM_FCB_CR(fcbaddr), _ram_read(CPM_FCB_CR(fcbaddr))+1);
-				if (CPM_FCB_CR(fcbaddr) > DISK_MAX_CR) {
+				if (_ram_read(CPM_FCB_CR(fcbaddr)) > DISK_MAX_CR) {
                     _ram_write(CPM_FCB_CR(fcbaddr), 0x01);
                     _ram_write(CPM_FCB_EX(fcbaddr), _ram_read(CPM_FCB_EX(fcbaddr))+1);
 				}
@@ -395,6 +395,10 @@ uint8_t _disk_write_seq(uint16_t fcbaddr) {
 			_error(DISK_ERR_WRITE_PROTECT);
 		}
 	}
+    fpos =	((_ram_read(CPM_FCB_S2(fcbaddr)) & DISK_MAX_S2) * DISK_BLK_S2 * DISK_BLK_SZ) +
+				(_ram_read(CPM_FCB_EX(fcbaddr)) * DISK_BLK_EX * DISK_BLK_SZ) +
+				(_ram_read(CPM_FCB_CR(fcbaddr)) * DISK_BLK_SZ);
+    fprintf(stderr,"out fpos=%ld\n",fpos);
 	return(result);
 }
 
