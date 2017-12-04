@@ -1,26 +1,56 @@
-# Main Makefile for RunCPM
-#
-# Usage:
-#	To build:	make <platform> build
-#	To clean:	make <platform> clean	
+# pal Makefile for runcpm
 
-PLATS = dos macosx mingw posix tdm
+PROG = runcpm
 
-all:	none
+MFILE = Makefile
 
-dos macosx mingw posix tdm:
-	$(eval SYS=$@)
-	@echo "Platform = $@ (type 'make all' for help)"
+# Compiler command
+CC = gcc
+#CC = gcc -DDEBUG=1 -DDEBUGLOG=1
 
+# Flags to pass to the compiler - add "-g" to include debug information
+CFLAGS = -Wall -O0 -fPIC -Wno-unused-variable -g
+
+# Flags to pass to the linker
+LDFLAGS = -lncurses -lm -ldl
+
+# Objects to build
+OBJS = ram.o cpu.o main.o cpm.o disk.o pal.o globals.o pal_posix.o
+
+# Clean up program
+RM = rm -f
+
+#------------------------------------------------------------------------
+
+all: $(PROG)
+
+$(PROG): $(OBJS)
+	$(CC) $(OBJS) -o $(PROG) $(LDFLAGS)
+
+pal_posix.o: pal_posix.c $(wildcard *.h) $(MFILE)
+	$(CC) $(CFLAGS) -c pal_posix.c
+
+pal.o: pal.c $(wildcard *.h) $(MFILE)
+	$(CC) $(CFLAGS) -c pal.c
+
+disk.o: disk.c $(wildcard *.h) $(MFILE)
+	$(CC) $(CFLAGS) -c disk.c
+
+cpu.o: cpu.c $(wildcard *.h) $(MFILE)
+	$(CC) $(CFLAGS) -c cpu.c
+
+cpm.o: cpm.c $(wildcard *.h) $(MFILE)
+	$(CC) $(CFLAGS) -c cpm.c
+
+main.o: main.c $(wildcard *.h) $(MFILE)
+	$(CC) $(CFLAGS) -c main.c
+
+ram.o: ram.c $(wildcard *.h) $(MFILE)
+	$(CC) $(CFLAGS) -c ram.c
+
+rebuild: clean all
+
+.PHONY: clean
 clean:
-	$(MAKE) -f Makefile.$(SYS) clean
-
-build:
-	$(MAKE) -f Makefile.$(SYS) all
-
-none:
-	@echo "To build RunCPM issue 'make PLATFORM build'."
-	@echo "To clean RunCPM issue 'make PLATFORM clean'."
-	@echo "Valid platforms are: $(PLATS)"
-
-.PHONY: all $(PLATS) clean build none
+	$(RM) *.o
+	$(RM) $(PROG)

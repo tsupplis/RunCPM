@@ -1,38 +1,15 @@
-#ifndef RAM_H
-#define RAM_H
+#include <stdint.h>
 
-/* see main.c for definition */
-
-#ifndef RAM_FAST
-static uint8 RAM[RAMSIZE];			// Definition of the emulated RAM
-
-uint8* _RamSysAddr(uint16 address) {
-	return(&RAM[address]);
-}
-
-uint8 _RamRead(uint16 address) {
-	return(RAM[address]);
-}
-
-void _RamWrite(uint16 address, uint8 value) {
-	RAM[address] = value;
-}
-
-void _RamWrite16(uint16 address, uint16 value) {
-	// Z80 is a "little indian" (8 bit era joke)
-	_RamWrite(address, value & 0xff);
-	_RamWrite(address + 1, (value >> 8) & 0xff);
-}
+#ifdef __cplusplus
+extern "C"
+{
 #endif
-
-void _RamFill(uint16 address, int size, uint8 value) {
-	while (size--)
-		_RamWrite(address++, value);
+   extern void _ram_init();
+   extern void _ram_write(uint16_t address, uint8_t value);
+   extern uint8_t _ram_read(uint16_t address);
+   extern void _ram_write16(uint16_t address, uint16_t value);
+   extern uint16_t _ram_read16(uint16_t address);
+   extern void _ram_fill(uint16_t address, int size, uint8_t value);
+#ifdef __cplusplus
 }
-
-void _RamCopy(uint16 source, int size, uint16 destination) {
-	while (size--)
-		_RamWrite(destination++, _RamRead(source++));
-}
-
 #endif
