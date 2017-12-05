@@ -10,6 +10,7 @@ extern "C"
 	extern void _cpm_bdos(void);
     extern void _cpm_bios(void);
     extern void _cpm_patch(void);
+    extern void _cpm_banner(void);
 #ifdef __cplusplus
 }
 #endif

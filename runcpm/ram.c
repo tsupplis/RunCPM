@@ -26,15 +26,17 @@ void _ram_write16(uint16_t address, uint16_t value) {
 }
 
 uint16_t _ram_read16(uint16_t address) {
- return (((uint16_t)(_ram_read((address & 0xffff) + 1)) << 8) | _ram_read(address & 0xffff));
+    return (((uint16_t)(_ram_read((address & 0xffff) + 1)) << 8) | _ram_read(address & 0xffff));
 }
 
 void _ram_fill(uint16_t address, int size, uint8_t value) {
-	while (size--)
+	while (size--) {
 		_ram_write(address++, value);
+    }
 }
 
 void _ram_copy(uint16_t source, int size, uint16_t destination) {
-	while (size--)
+	while (size--) {
 		_ram_write(destination++, _ram_read(source++));
+    }
 }

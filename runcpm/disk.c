@@ -22,18 +22,11 @@
 #define CPM_FCB_R1(addr) (CPM_FCB_R0(addr)+1)
 #define CPM_FCB_R2(addr) (CPM_FCB_R1(addr)+1)
 
-/*
-Disk errors
-*/
 #define DISK_ERR_WRITE_PROTECT 1
 #define DISK_ERR_SELECT 2
 
-#define RW(F)	(_glb_ro_vector & (1 << F->dr))
 #define IS_RW(fcbaddr)	(_glb_ro_vector & (1 << _ram_read(CPM_FCB_DR(fcbaddr))))
 
-/*
-FCB related numbers
-*/
 #define DISK_BLK_SZ 128	// CP/M block size
 #define	DISK_BLK_EX 128	// Number of blocks on an extension
 #define DISK_BLK_S2 4096	// Number of blocks on a S2 (module)
@@ -43,7 +36,7 @@ FCB related numbers
 #define DISK_MAX_S2 15	// Maximum value the S2 (modules) field can take - Can be set to 63 to emulate CP/M Plus
 
 static void _error(uint8_t error) {
-	_pal_puts("\r\nBdos Error on ");
+	_pal_puts("\r\nBDOS Error on ");
 	_putcon('A' + _glb_c_drive);
 	_pal_puts(" : ");
 	switch (error) {
@@ -54,10 +47,9 @@ static void _error(uint8_t error) {
 		_pal_puts("Select");
 		break;
 	default:
-		_pal_puts("\r\nCP/M ERROR");
+		_pal_puts("??");
 		break;
 	}
-	_getch();
 	_pal_puts("\r\n");
 	_glb_c_drive = _glb_o_drive;
 	_ram_write(0x0004, (_ram_read(0x0004) & 0xf0) | _glb_o_drive);

@@ -13,7 +13,7 @@ SRAM_23LC SRAM(&RAM_SPI_PERIPHERAL, RAM_SPI_CS, RAM_SPI_CHIP);
 
 uint8_t _ram_read(uint16_t address) {
 #ifdef RAM_SPI
-  SRAM.readByte(address);
+    return SRAM.readByte(address);
 #else
 	return(RAM[address]);
 #endif

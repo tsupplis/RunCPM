@@ -1,9 +1,9 @@
 #include "utils.h"
 #include "defaults.h"
+#include "globals.h"
 #include "pal.h"
 #include "ram.h"
 #include "disk.h"
-#include "globals.h"
 
 #include <SD.h>
 
@@ -28,7 +28,6 @@ uint8_t _pal_ram_load(uint8_t *filename, uint16_t address) {
 }
 
 File root;
-
 
 int _sys_select(uint8_t *disk) {
 	uint8_t result = 0;
@@ -132,7 +131,7 @@ void _sys_logbuffer(uint8_t *buffer) {
 	uint8_t s = 0;
 	while (*(buffer+s))	// Computes buffer size
 		s++;
-	if(f = SD.open(LogName, O_CREAT | O_APPEND | O_WRITE)) {
+	if(f = SD.open(DEBUG_LOG_PATH, O_CREAT | O_APPEND | O_WRITE)) {
 		f.write(buffer, s);
 		f.flush();
 		f.close();
@@ -352,10 +351,15 @@ void _sys_make_userdir() {
 }
 #endif
 
-/* Console abstraction functions */
-/*===============================================================================*/
-
+#define SDELAY 50
 void _console_init(void) {
+    Serial.begin(9600);
+	while (!Serial) {	// Wait until serial is connected
+		digitalWrite(EMULATOR_LED, HIGH);
+		delay(SDELAY);
+		digitalWrite(EMULATOR_LED, LOW);
+		delay(SDELAY);
+	}
 }
 
 void _console_reset(void) {

@@ -1,3 +1,4 @@
+#include "utils.h"
 #include "defaults.h"
 #include "globals.h"
 #include "cpu.h"
@@ -5,6 +6,10 @@
 #include "ram.h"
 #include "disk.h"
 #include "pal.h"
+
+#ifdef ARDUINO
+#include "Arduino.h"
+#endif 
 
 /* see main.c for definition */
 
@@ -14,6 +19,18 @@
 #define RET		0xc9
 #define INa		0xdb	// Triggers a BIOS call
 #define OUTa	0xd3	// Triggers a BDOS call
+
+void _cpm_banner(void) {
+    _clrscr();
+	  _pal_puts("CP/M 2.2 Emulator v" EMULATOR_VERSION " by Marcelo Dantas\r\n");
+    _pal_puts("Arduino read/write support by Krzysztof Klis\r\n");
+	  _pal_puts("      Build " __DATE__ " - " __TIME__ "\r\n");
+	  _pal_puts("-----------------------------------------\r\n");
+	  _pal_puts("CCP: " GLB_CCP_NAME "  CCP Address: 0x");
+	  _puthex16(GLB_CCP_ADDR);
+	  _pal_puts("\r\n");
+    _pal_puts(GLB_CCP_BANNER);
+}
 
 void _cpm_patch(void) {
 	uint16_t i;
@@ -87,10 +104,12 @@ uint8_t LogBuffer[128];
 
 void _logRegs(void) {
 	uint8_t J, I;
-	uint8_t Flags[9] = { 'S','Z','5','H','3','P','N','C' };
-	for (J = 0, I = CPU_REG_GET_LOW(_cpu_regs.af); J < 8; J++, I <<= 1) Flags[J] = I & 0x80 ? Flags[J] : '.';
-	sprintf((char*)LogBuffer, "  _cpu_regs.bc:%04x _cpu_regs.de:%04x _cpu_regs.hl:%04x _cpu_regs.af:%02x|%s| IX:%04x IY:%04x SP:%04x PC:%04x\n",
-		CPU_WORD16(_cpu_regs.bc), CPU_WORD16(_cpu_regs.de), CPU_WORD16(_cpu_regs.hl), CPU_REG_GET_HIGH(_cpu_regs.af), Flags, CPU_WORD16(_cpu_regs.ix), CPU_WORD16(_cpu_regs.iy), CPU_WORD16(_cpu_regs.sp), CPU_WORD16(_cpu_regs.pc)); _sys_logbuffer(LogBuffer);
+	uint8_t flags[9] = { 'S','Z','5','H','3','P','N','C' };
+	for (J = 0, I = CPU_REG_GET_LOW(_cpu_regs.af); J < 8; J++, I <<= 1) flags[J] = I & 0x80 ? flags[J] : '.';
+	sprintf((char*)LogBuffer, "BC:%04x DE:%04x HL:%04x AF:%02x|%s| IX:%04x IY:%04x SP:%04x PC:%04x\n",
+		CPU_WORD16(_cpu_regs.bc), CPU_WORD16(_cpu_regs.de), CPU_WORD16(_cpu_regs.hl), CPU_REG_GET_HIGH(_cpu_regs.af), flags, 
+		CPU_WORD16(_cpu_regs.ix), CPU_WORD16(_cpu_regs.iy), CPU_WORD16(_cpu_regs.sp), CPU_WORD16(_cpu_regs.pc)); 
+		_sys_logbuffer(LogBuffer);
 }
 
 void _logMem(uint16_t address, uint8_t amount)	// Amount = number of 16 bytes lines, so 1 CP/M block = 8, not 128
