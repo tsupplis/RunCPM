@@ -23,9 +23,9 @@
 #endif
 
 /* Definitions for file/console based debugging */
-#define DEBUG
-#define DEBUG_LOG	// Writes extensive call trace information to RunCPM.log
-#define DEBUG_LOG_TO_CONSOLE	// Writes debug information to console instead of file
+//#define DEBUG
+//#define DEBUG_LOG	// Writes extensive call trace information to RunCPM.log
+//#define DEBUG_LOG_TO_CONSOLE	// Writes debug information to console instead of file
 //#define DEBUG_LOG_ONLY 22	// If defined will log only this BDOS (or BIOS) function
 #define DEBUG_LOG_PATH "runcpm.log"
 

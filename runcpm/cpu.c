@@ -47,7 +47,7 @@ uint32_t cpu_in(const uint32_t Port) {
 #define SETFLAG(f,c)    (_cpu_regs.af = (c) ? _cpu_regs.af | FLAG_ ## f : _cpu_regs.af & ~FLAG_ ## f)
 #define TSTFLAG(f)      ((_cpu_regs.af & FLAG_ ## f) != 0)
 
-#define PARITY(x)   parityTable[(x) & 0xff]
+#define PARITY(x)   _parity_table[(x) & 0xff]
 /*  SET_PV and SET_PV2 are used to provide correct PARITY flag semantics for the 8080 in cases
 where the Z80 uses the overflow flag
 */
@@ -81,9 +81,9 @@ where the Z80 uses the overflow flag
 }
 
 /* the following tables precompute some common subexpressions
-parityTable[i]          0..255  (number of 1's in i is odd) ? 0 : 4
-incTable[i]             0..256! (i & 0xa8) | (((i & 0xff) == 0) << 6) | (((i & 0xf) == 0) << 4)
-decTable[i]             0..255  (i & 0xa8) | (((i & 0xff) == 0) << 6) | (((i & 0xf) == 0xf) << 4) | 2
+_parity_table[i]          0..255  (number of 1's in i is odd) ? 0 : 4
+_inc_table[i]             0..256! (i & 0xa8) | (((i & 0xff) == 0) << 6) | (((i & 0xf) == 0) << 4)
+_dec_table[i]             0..255  (i & 0xa8) | (((i & 0xff) == 0) << 6) | (((i & 0xf) == 0xf) << 4) | 2
 cbitsTable[i]           0..511  (i & 0x10) | ((i >> 8) & 1)
 cbitsDup8Table[i]       0..511  (i & 0x10) | ((i >> 8) & 1) | ((i & 0xff) << 8) | (i & 0xa8) |
 (((i & 0xff) == 0) << 6)
@@ -93,9 +93,9 @@ rrcaTable[i]            0..255  ((i & 1) << 15) | ((i >> 1) << 8) | ((i >> 1) & 
 rraTable[i]             0..255  ((i >> 1) << 8) | ((i >> 1) & 0x28) | (i & 1)
 addTable[i]             0..511  ((i & 0xff) << 8) | (i & 0xa8) | (((i & 0xff) == 0) << 6)
 subTable[i]             0..255  ((i & 0xff) << 8) | (i & 0xa8) | (((i & 0xff) == 0) << 6) | 2
-andTable[i]             0..255  (i << 8) | (i & 0xa8) | ((i == 0) << 6) | 0x10 | parityTable[i]
-xororTable[i]           0..255  (i << 8) | (i & 0xa8) | ((i == 0) << 6) | parityTable[i]
-rotateShiftTable[i]     0..255  (i & 0xa8) | (((i & 0xff) == 0) << 6) | parityTable[i & 0xff]
+andTable[i]             0..255  (i << 8) | (i & 0xa8) | ((i == 0) << 6) | 0x10 | _parity_table[i]
+xororTable[i]           0..255  (i << 8) | (i & 0xa8) | ((i == 0) << 6) | _parity_table[i]
+rotateShiftTable[i]     0..255  (i & 0xa8) | (((i & 0xff) == 0) << 6) | _parity_table[i & 0xff]
 incZ80Table[i]          0..256! (i & 0xa8) | (((i & 0xff) == 0) << 6) |
 (((i & 0xf) == 0) << 4) | ((i == 0x80) << 2)
 decZ80Table[i]          0..255  (i & 0xa8) | (((i & 0xff) == 0) << 6) |
@@ -107,7 +107,7 @@ cbits2Z80Table[i]       0..511  (i & 0x10) | (((i >> 6) ^ (i >> 5)) & 4) | ((i >
 cbits2Z80DupTable[i]    0..511  (i & 0x10) | (((i >> 6) ^ (i >> 5)) & 4) | ((i >> 8) & 1) | 2 |
 (i & 0xa8)
 negTable[i]             0..255  (((i & 0x0f) != 0) << 4) | ((i == 0x80) << 2) | 2 | (i != 0)
-rrdrldTable[i]          0..255  (i << 8) | (i & 0xa8) | (((i & 0xff) == 0) << 6) | parityTable[i]
+rrdrldTable[i]          0..255  (i << 8) | (i & 0xa8) | (((i & 0xff) == 0) << 6) | _parity_table[i]
 cpTable[i]              0..255  (i & 0x80) | (((i & 0xff) == 0) << 6)
 */
 
@@ -164,7 +164,7 @@ x == (C - 1) & 0xff for IND
     _cpu_regs.af = (_cpu_regs.af & 0xff00) | (syxz) |               /* SF, YF, XF, ZF   */  \
         ((acu & 0x80) >> 6) |                           /* NF       */  \
         ((acu + (x)) > 0xff ? (FLAG_C | FLAG_H) : 0) |  /* CF, HF   */  \
-        parityTable[((acu + (x)) & 7) ^ temp]           /* PF       */
+        _parity_table[((acu + (x)) & 7) ^ temp]           /* PF       */
 
 #define INOUTFLAGS_ZERO(x)      INOUTFLAGS(FLAG_Z, x)
 #define INOUTFLAGS_NONZERO(x)                                           \
@@ -243,23 +243,23 @@ static uint8_t _disasm(uint16_t pos) {
 	uint8_t C;
 
 	switch (ch) {
-	case 0xCB: pos++; txt = MnemonicsCB[_ram_read(pos++)]; count++; break;
-	case 0xED: pos++; txt = MnemonicsED[_ram_read(pos++)]; count++; break;
+	case 0xCB: pos++; txt = _mnemonics_cb[_ram_read(pos++)]; count++; break;
+	case 0xED: pos++; txt = _mnemonics_ed[_ram_read(pos++)]; count++; break;
 	case 0xDD: pos++; C = 'X';
 		if (_ram_read(pos) != 0xCB) {
-			txt = MnemonicsXX[_ram_read(pos++)]; count++;
+			txt = _mnemonics_xx[_ram_read(pos++)]; count++;
 		} else {
-			pos++; txt = MnemonicsXCB[_ram_read(pos++)]; count += 2;
+			pos++; txt = _mnemonics_xcb[_ram_read(pos++)]; count += 2;
 		}
 		break;
 	case 0xFD: pos++; C = 'Y';
 		if (_ram_read(pos) != 0xCB) {
-			txt = MnemonicsXX[_ram_read(pos++)]; count++;
+			txt = _mnemonics_xx[_ram_read(pos++)]; count++;
 		} else {
-			pos++; txt = MnemonicsXCB[_ram_read(pos++)]; count += 2;
+			pos++; txt = _mnemonics_xcb[_ram_read(pos++)]; count += 2;
 		}
 		break;
-	default:   txt = Mnemonics[_ram_read(pos++)];
+	default:   txt = _mnemonics[_ram_read(pos++)];
 	}
 	while (*txt != 0) {
 		switch (*txt) {
@@ -502,13 +502,13 @@ void _cpu_run(void) {
 		case 0x04:      /* INC B */
 			_cpu_regs.bc += 0x100;
 			temp = CPU_REG_GET_HIGH(_cpu_regs.bc);
-			_cpu_regs.af = (_cpu_regs.af & ~0xfe) | incTable[temp] | SET_PV2(0x80); /* SET_PV2 uses temp */
+			_cpu_regs.af = (_cpu_regs.af & ~0xfe) | _inc_table[temp] | SET_PV2(0x80); /* SET_PV2 uses temp */
 			break;
 
 		case 0x05:      /* DEC B */
 			_cpu_regs.bc -= 0x100;
 			temp = CPU_REG_GET_HIGH(_cpu_regs.bc);
-			_cpu_regs.af = (_cpu_regs.af & ~0xfe) | decTable[temp] | SET_PV2(0x7f); /* SET_PV2 uses temp */
+			_cpu_regs.af = (_cpu_regs.af & ~0xfe) | _dec_table[temp] | SET_PV2(0x7f); /* SET_PV2 uses temp */
 			break;
 
 		case 0x06:      /* LD B,nn */
@@ -545,13 +545,13 @@ void _cpu_run(void) {
 		case 0x0c:      /* INC C */
 			temp = CPU_REG_GET_LOW(_cpu_regs.bc) + 1;
 			CPU_REG_SET_LOW(_cpu_regs.bc, temp);
-			_cpu_regs.af = (_cpu_regs.af & ~0xfe) | incTable[temp] | SET_PV2(0x80);
+			_cpu_regs.af = (_cpu_regs.af & ~0xfe) | _inc_table[temp] | SET_PV2(0x80);
 			break;
 
 		case 0x0d:      /* DEC C */
 			temp = CPU_REG_GET_LOW(_cpu_regs.bc) - 1;
 			CPU_REG_SET_LOW(_cpu_regs.bc, temp);
-			_cpu_regs.af = (_cpu_regs.af & ~0xfe) | decTable[temp & 0xff] | SET_PV2(0x7f);
+			_cpu_regs.af = (_cpu_regs.af & ~0xfe) | _dec_table[temp & 0xff] | SET_PV2(0x7f);
 			break;
 
 		case 0x0e:      /* LD C,nn */
@@ -585,13 +585,13 @@ void _cpu_run(void) {
 		case 0x14:      /* INC D */
 			_cpu_regs.de += 0x100;
 			temp = CPU_REG_GET_HIGH(_cpu_regs.de);
-			_cpu_regs.af = (_cpu_regs.af & ~0xfe) | incTable[temp] | SET_PV2(0x80); /* SET_PV2 uses temp */
+			_cpu_regs.af = (_cpu_regs.af & ~0xfe) | _inc_table[temp] | SET_PV2(0x80); /* SET_PV2 uses temp */
 			break;
 
 		case 0x15:      /* DEC D */
 			_cpu_regs.de -= 0x100;
 			temp = CPU_REG_GET_HIGH(_cpu_regs.de);
-			_cpu_regs.af = (_cpu_regs.af & ~0xfe) | decTable[temp] | SET_PV2(0x7f); /* SET_PV2 uses temp */
+			_cpu_regs.af = (_cpu_regs.af & ~0xfe) | _dec_table[temp] | SET_PV2(0x7f); /* SET_PV2 uses temp */
 			break;
 
 		case 0x16:      /* LD D,nn */
@@ -626,13 +626,13 @@ void _cpu_run(void) {
 		case 0x1c:      /* INC E */
 			temp = CPU_REG_GET_LOW(_cpu_regs.de) + 1;
 			CPU_REG_SET_LOW(_cpu_regs.de, temp);
-			_cpu_regs.af = (_cpu_regs.af & ~0xfe) | incTable[temp] | SET_PV2(0x80);
+			_cpu_regs.af = (_cpu_regs.af & ~0xfe) | _inc_table[temp] | SET_PV2(0x80);
 			break;
 
 		case 0x1d:      /* DEC E */
 			temp = CPU_REG_GET_LOW(_cpu_regs.de) - 1;
 			CPU_REG_SET_LOW(_cpu_regs.de, temp);
-			_cpu_regs.af = (_cpu_regs.af & ~0xfe) | decTable[temp & 0xff] | SET_PV2(0x7f);
+			_cpu_regs.af = (_cpu_regs.af & ~0xfe) | _dec_table[temp & 0xff] | SET_PV2(0x7f);
 			break;
 
 		case 0x1e:      /* LD E,nn */
@@ -668,13 +668,13 @@ void _cpu_run(void) {
 		case 0x24:      /* INC H */
 			_cpu_regs.hl += 0x100;
 			temp = CPU_REG_GET_HIGH(_cpu_regs.hl);
-			_cpu_regs.af = (_cpu_regs.af & ~0xfe) | incTable[temp] | SET_PV2(0x80); /* SET_PV2 uses temp */
+			_cpu_regs.af = (_cpu_regs.af & ~0xfe) | _inc_table[temp] | SET_PV2(0x80); /* SET_PV2 uses temp */
 			break;
 
 		case 0x25:      /* DEC H */
 			_cpu_regs.hl -= 0x100;
 			temp = CPU_REG_GET_HIGH(_cpu_regs.hl);
-			_cpu_regs.af = (_cpu_regs.af & ~0xfe) | decTable[temp] | SET_PV2(0x7f); /* SET_PV2 uses temp */
+			_cpu_regs.af = (_cpu_regs.af & ~0xfe) | _dec_table[temp] | SET_PV2(0x7f); /* SET_PV2 uses temp */
 			break;
 
 		case 0x26:      /* LD H,nn */
@@ -733,13 +733,13 @@ void _cpu_run(void) {
 		case 0x2c:      /* INC L */
 			temp = CPU_REG_GET_LOW(_cpu_regs.hl) + 1;
 			CPU_REG_SET_LOW(_cpu_regs.hl, temp);
-			_cpu_regs.af = (_cpu_regs.af & ~0xfe) | incTable[temp] | SET_PV2(0x80);
+			_cpu_regs.af = (_cpu_regs.af & ~0xfe) | _inc_table[temp] | SET_PV2(0x80);
 			break;
 
 		case 0x2d:      /* DEC L */
 			temp = CPU_REG_GET_LOW(_cpu_regs.hl) - 1;
 			CPU_REG_SET_LOW(_cpu_regs.hl, temp);
-			_cpu_regs.af = (_cpu_regs.af & ~0xfe) | decTable[temp & 0xff] | SET_PV2(0x7f);
+			_cpu_regs.af = (_cpu_regs.af & ~0xfe) | _dec_table[temp & 0xff] | SET_PV2(0x7f);
 			break;
 
 		case 0x2e:      /* LD L,nn */
@@ -775,13 +775,13 @@ void _cpu_run(void) {
 		case 0x34:      /* INC (_cpu_regs.hl) */
 			temp = GET_BYTE(_cpu_regs.hl) + 1;
 			PUT_BYTE(_cpu_regs.hl, temp);
-			_cpu_regs.af = (_cpu_regs.af & ~0xfe) | incTable[temp] | SET_PV2(0x80);
+			_cpu_regs.af = (_cpu_regs.af & ~0xfe) | _inc_table[temp] | SET_PV2(0x80);
 			break;
 
 		case 0x35:      /* DEC (_cpu_regs.hl) */
 			temp = GET_BYTE(_cpu_regs.hl) - 1;
 			PUT_BYTE(_cpu_regs.hl, temp);
-			_cpu_regs.af = (_cpu_regs.af & ~0xfe) | decTable[temp & 0xff] | SET_PV2(0x7f);
+			_cpu_regs.af = (_cpu_regs.af & ~0xfe) | _dec_table[temp & 0xff] | SET_PV2(0x7f);
 			break;
 
 		case 0x36:      /* LD (_cpu_regs.hl),nn */
@@ -820,13 +820,13 @@ void _cpu_run(void) {
 		case 0x3c:      /* INC A */
 			_cpu_regs.af += 0x100;
 			temp = CPU_REG_GET_HIGH(_cpu_regs.af);
-			_cpu_regs.af = (_cpu_regs.af & ~0xfe) | incTable[temp] | SET_PV2(0x80); /* SET_PV2 uses temp */
+			_cpu_regs.af = (_cpu_regs.af & ~0xfe) | _inc_table[temp] | SET_PV2(0x80); /* SET_PV2 uses temp */
 			break;
 
 		case 0x3d:      /* DEC A */
 			_cpu_regs.af -= 0x100;
 			temp = CPU_REG_GET_HIGH(_cpu_regs.af);
-			_cpu_regs.af = (_cpu_regs.af & ~0xfe) | decTable[temp] | SET_PV2(0x7f); /* SET_PV2 uses temp */
+			_cpu_regs.af = (_cpu_regs.af & ~0xfe) | _dec_table[temp] | SET_PV2(0x7f); /* SET_PV2 uses temp */
 			break;
 
 		case 0x3e:      /* LD A,nn */

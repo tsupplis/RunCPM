@@ -1,5 +1,5 @@
 /* parityTable[i] = (number of 1's in i is odd) ? 0 : 4, i = 0..255 */
-static const uint8_t parityTable[256] = {
+static const uint8_t _parity_table[256] = {
 	4,0,0,4,0,4,4,0,0,4,4,0,4,0,0,4,
 	0,4,4,0,4,0,0,4,4,0,0,4,0,4,4,0,
 	0,4,4,0,4,0,0,4,4,0,0,4,0,4,4,0,
@@ -19,7 +19,7 @@ static const uint8_t parityTable[256] = {
 };
 
 /* incTable[i] = (i & 0xa8) | (((i & 0xff) == 0) << 6) | (((i & 0xf) == 0) << 4), i = 0..256 */
-static const uint8_t incTable[257] = {
+static const uint8_t _inc_table[257] = {
 	80,  0,  0,  0,  0,  0,  0,  0,  8,  8,  8,  8,  8,  8,  8,  8,
 	16,  0,  0,  0,  0,  0,  0,  0,  8,  8,  8,  8,  8,  8,  8,  8,
 	48, 32, 32, 32, 32, 32, 32, 32, 40, 40, 40, 40, 40, 40, 40, 40,
@@ -39,7 +39,7 @@ static const uint8_t incTable[257] = {
 };
 
 /* decTable[i] = (i & 0xa8) | (((i & 0xff) == 0) << 6) | (((i & 0xf) == 0xf) << 4) | 2, i = 0..255 */
-static const uint8_t decTable[256] = {
+static const uint8_t _dec_table[256] = {
 	66,  2,  2,  2,  2,  2,  2,  2, 10, 10, 10, 10, 10, 10, 10, 26,
 	2,  2,  2,  2,  2,  2,  2,  2, 10, 10, 10, 10, 10, 10, 10, 26,
 	34, 34, 34, 34, 34, 34, 34, 34, 42, 42, 42, 42, 42, 42, 42, 58,
@@ -768,7 +768,7 @@ static const uint8_t cpTable[256] = {
 };
 
 #ifdef DEBUG
-static const char *Mnemonics[256] =
+static const char *_mnemonics[256] =
 {
 	"NOP", "LD BC,#h", "LD (BC),A", "INC BC", "INC B", "DEC B", "LD B,*h", "RLCA",
 	"EX AF,AF'", "ADD HL,BC", "LD A,(BC)", "DEC BC", "INC C", "DEC C", "LD C,*h", "RRCA",
@@ -804,7 +804,7 @@ static const char *Mnemonics[256] =
 	"RET M", "LD SP,HL", "JP M,#h", "EI", "CALL M,#h", "PFX_FD", "CP *h", "RST 38h"
 };
 
-static const char *MnemonicsCB[256] =
+static const char *_mnemonics_cb[256] =
 {
 	"RLC B", "RLC C", "RLC D", "RLC E", "RLC H", "RLC L", "RLC (HL)", "RLC A",
 	"RRC B", "RRC C", "RRC D", "RRC E", "RRC H", "RRC L", "RRC (HL)", "RRC A",
@@ -840,7 +840,7 @@ static const char *MnemonicsCB[256] =
 	"SET 7,B", "SET 7,C", "SET 7,D", "SET 7,E", "SET 7,H", "SET 7,L", "SET 7,(HL)", "SET 7,A"
 };
 
-static const char *MnemonicsED[256] =
+static const char *_mnemonics_ed[256] =
 {
 	"DB EDh,00h", "DB EDh,01h", "DB EDh,02h", "DB EDh,03h",
 	"DB EDh,04h", "DB EDh,05h", "DB EDh,06h", "DB EDh,07h",
@@ -908,7 +908,7 @@ static const char *MnemonicsED[256] =
 	"DB EDh,FCh", "DB EDh,FDh", "DB EDh,FEh", "DB EDh,FFh"
 };
 
-static const char *MnemonicsXX[256] =
+static const char *_mnemonics_xx[256] =
 {
 	"NOP", "LD BC,#h", "LD (BC),A", "INC BC", "INC B", "DEC B", "LD B,*h", "RLCA",
 	"EX AF,AF'", "ADD I%,BC", "LD A,(BC)", "DEC BC", "INC C", "DEC C", "LD C,*h", "RRCA",
@@ -944,7 +944,7 @@ static const char *MnemonicsXX[256] =
 	"RET M", "LD SP,I%", "JP M,#h", "EI", "CALL M,#h", "PFX_FD", "CP *h", "RST 38h"
 };
 
-static const char *MnemonicsXCB[256] =
+static const char *_mnemonics_xcb[256] =
 {
 	"RLC B", "RLC C", "RLC D", "RLC E", "RLC H", "RLC L", "RLC (I%@h)", "RLC A",
 	"RRC B", "RRC C", "RRC D", "RRC E", "RRC H", "RRC L", "RRC (I%@h)", "RRC A",
