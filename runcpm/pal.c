@@ -26,38 +26,38 @@ uint8_t _pal_file_match(uint8_t *fcbname, uint8_t *pattern) {
 	return(result);
 }
 
-uint8_t _chready(void)		// Checks if there's a character ready for input
+uint8_t _pal_chready(void)		// Checks if there's a character ready for input
 {
-	return(_kbhit() ? 0xff : 0x00);
+	return(_pal_kbhit() ? 0xff : 0x00);
 }
 
-uint8_t _getchNB(void)		// Gets a character, non-blocking, no echo
+uint8_t _pal_getch_nb(void)		// Gets a character, non-blocking, no echo
 {
-	return(_kbhit() ? _getch() : 0x00);
+	return(_pal_kbhit() ? _pal_getch() : 0x00);
 }
 
-void _putcon(uint8_t ch)		// Puts a character
+void _pal_put_con(uint8_t ch)		// Puts a character
 {
-	_putch(ch & 0x7f);
+	_pal_putch(ch & 0x7f);
 }
 
 void _pal_puts(const char *str)	// Puts a \0 terminated string
 {
 	while (*str)
-		_putcon(*(str++));
+		_pal_put_con(*(str++));
 }
 
-void _puthex8(uint8_t c)		// Puts a HH hex string
+void _pal_put_hex8(uint8_t c)		// Puts a HH hex string
 {
 	uint8_t h;
 	h = c >> 4;
-	_putcon(tohex(h));
+	_pal_put_con(tohex(h));
 	h = c & 0x0f;
-	_putcon(tohex(h));
+	_pal_put_con(tohex(h));
 }
 
-void _puthex16(uint16_t w)	// puts a HHHH hex string
+void _pal_put_hex16(uint16_t w)	// puts a HHHH hex string
 {
-	_puthex8(w >> 8);
-	_puthex8(w & 0x00ff);
+	_pal_put_hex8(w >> 8);
+	_pal_put_hex8(w & 0x00ff);
 }

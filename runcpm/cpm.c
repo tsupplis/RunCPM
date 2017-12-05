@@ -9,7 +9,7 @@
 
 #ifdef ARDUINO
 #include "Arduino.h"
-#endif 
+#endif
 
 /* see main.c for definition */
 
@@ -21,14 +21,14 @@
 #define OUTa	0xd3	// Triggers a BDOS call
 
 void _cpm_banner(void) {
-    _clrscr();
-	  _pal_puts("CP/M 2.2 Emulator v" EMULATOR_VERSION " by Marcelo Dantas\r\n");
+    _pal_clrscr();
+    _pal_puts("CP/M 2.2 Emulator v" EMULATOR_VERSION " by Marcelo Dantas\r\n");
     _pal_puts("Arduino read/write support by Krzysztof Klis\r\n");
-	  _pal_puts("      Build " __DATE__ " - " __TIME__ "\r\n");
-	  _pal_puts("-----------------------------------------\r\n");
-	  _pal_puts("CCP: " GLB_CCP_NAME "  CCP Address: 0x");
-	  _puthex16(GLB_CCP_ADDR);
-	  _pal_puts("\r\n");
+    _pal_puts("      Build " __DATE__ " - " __TIME__ "\r\n");
+    _pal_puts("-----------------------------------------\r\n");
+    _pal_puts("CCP: " GLB_CCP_NAME "  CCP Address: 0x");
+    _pal_put_hex16(GLB_CCP_ADDR);
+    _pal_puts("\r\n");
     _pal_puts(GLB_CCP_BANNER);
 }
 
@@ -96,23 +96,22 @@ void _cpm_patch(void) {
 	_ram_write(i++, 0x00);
 	_ram_write(i++, 0x02);		/* off - Number of system reserved tracks at the beginning of the ( logical ) disk */
 	_ram_write(i++, 0x00);
-
 }
 
 #ifdef DEBUG_LOG
-uint8_t LogBuffer[128];
+uint8_t _log_buffer[128];
 
-void _logRegs(void) {
-	uint8_t J, I;
+void _log_regs(void) {
+	uint8_t j, i;
 	uint8_t flags[9] = { 'S','Z','5','H','3','P','N','C' };
-	for (J = 0, I = CPU_REG_GET_LOW(_cpu_regs.af); J < 8; J++, I <<= 1) flags[J] = I & 0x80 ? flags[J] : '.';
-	sprintf((char*)LogBuffer, "BC:%04x DE:%04x HL:%04x AF:%02x|%s| IX:%04x IY:%04x SP:%04x PC:%04x\n",
-		CPU_WORD16(_cpu_regs.bc), CPU_WORD16(_cpu_regs.de), CPU_WORD16(_cpu_regs.hl), CPU_REG_GET_HIGH(_cpu_regs.af), flags, 
-		CPU_WORD16(_cpu_regs.ix), CPU_WORD16(_cpu_regs.iy), CPU_WORD16(_cpu_regs.sp), CPU_WORD16(_cpu_regs.pc)); 
-		_sys_logbuffer(LogBuffer);
+	for (j = 0, i = CPU_REG_GET_LOW(_cpu_regs.af); j < 8; j++, i <<= 1) flags[j] = i & 0x80 ? flags[j] : '.';
+	sprintf((char*)_log_buffer, "BC:%04x DE:%04x HL:%04x AF:%02x|%s| IX:%04x IY:%04x SP:%04x PC:%04x\n",
+		CPU_WORD16(_cpu_regs.bc), CPU_WORD16(_cpu_regs.de), CPU_WORD16(_cpu_regs.hl), CPU_REG_GET_HIGH(_cpu_regs.af), flags,
+		CPU_WORD16(_cpu_regs.ix), CPU_WORD16(_cpu_regs.iy), CPU_WORD16(_cpu_regs.sp), CPU_WORD16(_cpu_regs.pc));
+		_pal_log_buffer(_log_buffer);
 }
 
-void _logMem(uint16_t address, uint8_t amount)	// Amount = number of 16 bytes lines, so 1 CP/M block = 8, not 128
+static void _log_mem(uint16_t address, uint8_t amount)	// Amount = number of 16 bytes lines, so 1 CP/M block = 8, not 128
 {
 	uint8_t i, m, c, pos;
 	uint8_t head = 8;
@@ -120,32 +119,32 @@ void _logMem(uint16_t address, uint8_t amount)	// Amount = number of 16 bytes li
 	for (i = 0; i < amount; i++) {
 		pos = 0;
 		for (m = 0; m < head; m++)
-			LogBuffer[pos++] = ' ';
-		sprintf((char*)LogBuffer, "  %04x: ", address);
+			_log_buffer[pos++] = ' ';
+		sprintf((char*)_log_buffer, "  %04x: ", address);
 		for (m = 0; m < 16; m++) {
 			c = _ram_read(address++);
-			LogBuffer[pos++] = hexa[c >> 4];
-			LogBuffer[pos++] = hexa[c & 0x0f];
-			LogBuffer[pos++] = ' ';
-			LogBuffer[m + head + 48] = c > 31 && c < 127 ? c : '.';
+			_log_buffer[pos++] = hexa[c >> 4];
+			_log_buffer[pos++] = hexa[c & 0x0f];
+			_log_buffer[pos++] = ' ';
+			_log_buffer[m + head + 48] = c > 31 && c < 127 ? c : '.';
 		}
 		pos += 16;
-		LogBuffer[pos++] = 0x0a;
-		LogBuffer[pos++] = 0x00;
-		_sys_logbuffer(LogBuffer);
+		_log_buffer[pos++] = 0x0a;
+		_log_buffer[pos++] = 0x00;
+		_pal_log_buffer(_log_buffer);
 	}
 }
 
-void _logChar(char *txt, uint8_t c) {
+void _log_char(char *txt, uint8_t c) {
 	uint8_t asc[2];
 
 	asc[0] = c > 31 && c < 127 ? c : '.';
 	asc[1] = 0;
-	sprintf((char *)LogBuffer, "        %s = %02xh:%3d (%s)\n", txt, c, c, asc);
-	_sys_logbuffer(LogBuffer);
+	sprintf((char *)_log_buffer, "        %s = %02xh:%3d (%s)\n", txt, c, c, asc);
+	_pal_log_buffer(_log_buffer);
 }
 
-void _logBiosIn(uint8_t ch) {
+void _log_bios_in(uint8_t ch) {
 	static const char *BIOSCalls[18] =
 	{
 		"boot", "wboot", "const", "conin", "conout", "list", "punch/aux", "reader", "home", "seldisk", "settrk", "setsec", "setdma",
@@ -153,24 +152,24 @@ void _logBiosIn(uint8_t ch) {
 	};
 	int index = ch / 3;
 	if (index < 18) {
-		sprintf((char *)LogBuffer, "\nBios call: %3d (%s) IN:\n", ch, BIOSCalls[index]); _sys_logbuffer(LogBuffer);
+		sprintf((char *)_log_buffer, "\nBios call: %3d (%s) IN:\n", ch, BIOSCalls[index]); _pal_log_buffer(_log_buffer);
 	} else {
-		sprintf((char *)LogBuffer, "\nBios call: %3d IN:\n", ch); _sys_logbuffer(LogBuffer);
+		sprintf((char *)_log_buffer, "\nBios call: %3d IN:\n", ch); _pal_log_buffer(_log_buffer);
 	}
 
-	_logRegs();
+	_log_regs();
 }
 
-void _logBiosOut(uint8_t ch) {
-	sprintf((char *)LogBuffer, "              OUT:\n"); _sys_logbuffer(LogBuffer);
-	_logRegs();
+static void _log_bios_out(uint8_t ch) {
+	sprintf((char *)_log_buffer, "              OUT:\n"); _pal_log_buffer(_log_buffer);
+	_log_regs();
 }
 
-void _logBdosIn(uint8_t ch) {
+static void _log_bdos_in(uint8_t ch) {
 	uint16_t address = 0;
 	uint8_t size = 0;
 
-	static const char *CPMCalls[41] =
+	static const char *_cpm_calls[41] =
 	{
 		"System Reset", "Console Input", "Console Output", "Reader Input", "Punch Output", "List Output", "Direct I/O", "Get IOByte",
 		"Set IOByte", "Print String", "Read Buffered", "Console _cpu_status", "Get Version", "Reset Disk", "Select Disk", "Open File",
@@ -180,17 +179,17 @@ void _logBdosIn(uint8_t ch) {
 	};
 
 	if (ch < 41) {
-		sprintf((char *)LogBuffer, "\nBdos call: %3d (%s) IN from 0x%04x:\n", ch, CPMCalls[ch], _ram_read16(_cpu_regs.sp)-3); _sys_logbuffer(LogBuffer);
+		sprintf((char *)_log_buffer, "\nBdos call: %3d (%s) IN from 0x%04x:\n", ch, _cpm_calls[ch], _ram_read16(_cpu_regs.sp)-3); _pal_log_buffer(_log_buffer);
 	} else {
-		sprintf((char *)LogBuffer, "\nBdos call: %3d IN from 0x%04x:\n", ch, _ram_read16(_cpu_regs.sp)-3); _sys_logbuffer(LogBuffer);
+		sprintf((char *)_log_buffer, "\nBdos call: %3d IN from 0x%04x:\n", ch, _ram_read16(_cpu_regs.sp)-3); _pal_log_buffer(_log_buffer);
 	}
-	_logRegs();
+	_log_regs();
 	switch (ch) {
 	case 2:
 	case 4:
 	case 5:
 	case 6:
-		_logChar("E", CPU_REG_GET_LOW(_cpu_regs.de)); break;
+		_log_char("E", CPU_REG_GET_LOW(_cpu_regs.de)); break;
 	case 9:
 	case 10:
 		address = _cpu_regs.de; size = 8; break;
@@ -210,27 +209,27 @@ void _logBdosIn(uint8_t ch) {
 	case 33:
 	case 34:
 	case 40:
-		address = _cpu_regs.de; size = 3; _logMem(address, size);
-		sprintf((char *)LogBuffer, "\n");  _sys_logbuffer(LogBuffer);
+		address = _cpu_regs.de; size = 3; _log_mem(address, size);
+		sprintf((char *)_log_buffer, "\n");  _pal_log_buffer(_log_buffer);
 		address = _glb_dma_addr; size = 8; break;
 	default:
 		break;
 	}
 	if (size)
-		_logMem(address, size);
+		_log_mem(address, size);
 }
 
-void _logBdosOut(uint8_t ch) {
+static void _log_bdos_out(uint8_t ch) {
 	uint16_t address = 0;
 	uint8_t size = 0;
 
-	sprintf((char *)LogBuffer, "              OUT:\n"); _sys_logbuffer(LogBuffer);
-	_logRegs();
+	sprintf((char *)_log_buffer, "              OUT:\n"); _pal_log_buffer(_log_buffer);
+	_log_regs();
 	switch (ch) {
 	case 1:
 	case 3:
 	case 6:
-		_logChar("A", CPU_REG_GET_HIGH(_cpu_regs.af)); break;
+		_log_char("A", CPU_REG_GET_HIGH(_cpu_regs.af)); break;
 	case 10:
 		address = _cpu_regs.de; size = 8; break;
 	case 20:
@@ -238,8 +237,8 @@ void _logBdosOut(uint8_t ch) {
 	case 33:
 	case 34:
 	case 40:
-		address = _cpu_regs.de; size = 3; _logMem(address, size);
-		sprintf((char *)LogBuffer, "\n");  _sys_logbuffer(LogBuffer);
+		address = _cpu_regs.de; size = 3; _log_mem(address, size);
+		sprintf((char *)_log_buffer, "\n");  _pal_log_buffer(_log_buffer);
 		address = _glb_dma_addr; size = 8; break;
 	case 26:
 		address = _glb_dma_addr; size = 8; break;
@@ -250,7 +249,7 @@ void _logBdosOut(uint8_t ch) {
 		break;
 	}
 	if (size)
-		_logMem(address, size);
+		_log_mem(address, size);
 }
 #endif
 
@@ -261,7 +260,7 @@ void _cpm_bios(void) {
 #ifdef DEBUG_LOG_ONLY
 	if (ch == DEBUG_LOG_ONLY)
 #endif
-		_logBiosIn(ch);
+		_log_bios_in(ch);
 #endif
 
 	switch (ch) {
@@ -272,17 +271,17 @@ void _cpm_bios(void) {
 		_cpu_status = 2;			// 1 - WBOOT - Back to CCP
 		break;
 	case 0x06:				// 2 - CONST - Console status
-		CPU_REG_SET_HIGH(_cpu_regs.af, _chready());
+		CPU_REG_SET_HIGH(_cpu_regs.af, _pal_chready());
 		break;
 	case 0x09:				// 3 - CONIN - Console input
-		CPU_REG_SET_HIGH(_cpu_regs.af, _getch());
+		CPU_REG_SET_HIGH(_cpu_regs.af, _pal_getch());
 #ifdef DEBUG
 		if (CPU_REG_GET_HIGH(_cpu_regs.af) == 4)
 			_cpu_debug = 1;
 #endif
 		break;
 	case 0x0C:				// 4 - CONOUT - Console output
-		_putcon(CPU_REG_GET_LOW(_cpu_regs.bc));
+		_pal_put_con(CPU_REG_GET_LOW(_cpu_regs.bc));
 		break;
 	case 0x0F:				// 5 - LIST - List output
 		break;
@@ -323,7 +322,7 @@ void _cpm_bios(void) {
 #ifdef DEBUG	// Show unimplemented BIOS calls only when debugging
 		_pal_puts("\r\nUnimplemented BIOS call.\r\n");
 		_pal_puts("C = 0x");
-		_puthex8(ch);
+		_pal_put_hex8(ch);
 		_pal_puts("\r\n");
 #endif
 		break;
@@ -332,7 +331,7 @@ void _cpm_bios(void) {
 #ifdef DEBUG_LOG_ONLY
 	if (ch == DEBUG_LOG_ONLY)
 #endif
-		_logBiosOut(ch);
+		_log_bios_out(ch);
 #endif
 
 }
@@ -345,7 +344,7 @@ void _cpm_bdos(void) {
 #ifdef DEBUG_LOG_ONLY
 	if (ch == DEBUG_LOG_ONLY)
 #endif
-		_logBdosIn(ch);
+		_log_bdos_in(ch);
 #endif
 
 	_cpu_regs.hl = 0x0000;	// _cpu_regs.hl is reset by the BDOS
@@ -365,7 +364,7 @@ void _cpm_bdos(void) {
 		Returns: A=Char
 		*/
 	case 1:
-		_cpu_regs.hl = _getche();
+		_cpu_regs.hl = _pal_getche();
 #ifdef DEBUG
 		if (_cpu_regs.hl == 4)
 			_cpu_debug = 1;
@@ -377,7 +376,7 @@ void _cpm_bdos(void) {
 		Sends the char in E to the console
 		*/
 	case 2:
-		_putcon(CPU_REG_GET_LOW(_cpu_regs.de));
+		_pal_put_con(CPU_REG_GET_LOW(_cpu_regs.de));
 		break;
 		/*
 		C = 3 : Auxiliary (Reader) input
@@ -404,13 +403,13 @@ void _cpm_bdos(void) {
 		*/
 	case 6:
 		if (CPU_REG_GET_LOW(_cpu_regs.de) == 0xff) {
-			_cpu_regs.hl = _getchNB();
+			_cpu_regs.hl = _pal_getch_nb();
 #ifdef DEBUG
 			if (_cpu_regs.hl == 4)
 				_cpu_debug = 1;
 #endif
 		} else {
-			_putcon(CPU_REG_GET_LOW(_cpu_regs.de));
+			_pal_put_con(CPU_REG_GET_LOW(_cpu_regs.de));
 		}
 		break;
 		/*
@@ -436,7 +435,7 @@ void _cpm_bdos(void) {
 		*/
 	case 9:
 		while ((ch = _ram_read(_cpu_regs.de++)) != '$')
-			_putcon(ch);
+			_pal_put_con(ch);
 		break;
 		/*
 		C = 10 (0Ah) : Buffered input
@@ -452,7 +451,7 @@ void _cpm_bdos(void) {
 		count = 0;
 		while (c)	// Very simplistic line input
 		{
-			chr = _getch();
+			chr = _pal_getch();
 			if (chr == 3 && count == 0) {						// ^C
 				_pal_puts("^C");
 				_cpu_status = 2;
@@ -474,7 +473,7 @@ void _cpm_bdos(void) {
 			if (chr == 18) {									// ^R
 				_pal_puts("#\r\n  ");
 				for (j = 1; j <= count; j++)
-					_putcon(_ram_read(i + j));
+					_pal_put_con(_ram_read(i + j));
 			}
 			if (chr == 21) {									// ^U
 				_pal_puts("#\r\n  ");
@@ -493,20 +492,20 @@ void _cpm_bdos(void) {
 			}
 			if (chr < 0x20 || chr > 0x7E)						// Invalid character
 				continue;
-			_putcon(chr);
+			_pal_put_con(chr);
 			count++; _ram_write(i + count, chr);
 			if (count == c)
 				break;
 		}
 		_ram_write(i, count);	// Saves the number or characters read
-		_putcon('\r');	// Gives a visual feedback that read ended
+		_pal_put_con('\r');	// Gives a visual feedback that read ended
 		break;
 		/*
 		C = 11 (0Bh) : Get console status
 		Returns: A=0x00 or 0xFF
 		*/
 	case 11:
-		_cpu_regs.hl = _chready();
+		_cpu_regs.hl = _pal_chready();
 		break;
 		/*
 		C = 12 (0Ch) : Get version number
@@ -748,7 +747,7 @@ void _cpm_bdos(void) {
 #ifdef DEBUG	// Show unimplemented BDOS calls only when debugging
 		_pal_puts("\r\nUnimplemented BDOS call.\r\n");
 		_pal_puts("C = 0x");
-		_puthex8(ch);
+		_pal_put_hex8(ch);
 		_pal_puts("\r\n");
 #endif
 		break;
@@ -762,7 +761,7 @@ void _cpm_bdos(void) {
 #ifdef DEBUG_LOG_ONLY
 	if (ch == DEBUG_LOG_ONLY)
 #endif
-		_logBdosOut(ch);
+		_log_bdos_out(ch);
 #endif
 
 }

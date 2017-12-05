@@ -17,11 +17,11 @@ void setup(void) {
 	pinMode(EMULATOR_LED, OUTPUT);
 	digitalWrite(EMULATOR_LED, LOW);
 #ifdef DEBUG_LOG
-	_sys_deletefile((uint8_t *)DEBUG_LOG_PATH);
+	_pal_delete_file((uint8_t *)DEBUG_LOG_PATH);
 #endif
 
     _ram_init();
-    _console_init();
+    _pal_console_init();
     _cpm_banner();
 
 	if (SD.begin(SD_SPI_CS)) {

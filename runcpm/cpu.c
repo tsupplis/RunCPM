@@ -17,7 +17,7 @@ int32_t _cpu_step = -1;
 /*
 	Functions needed by the soft CPU implementation
 */
-void cpu_out(const uint32_t Port, const uint32_t Value) {
+static void _cpu_out(const uint32_t Port, const uint32_t Value) {
 	_cpm_bios();
 }
 
@@ -193,18 +193,18 @@ void _cpu_reset(void) {
 }
 
 #ifdef DEBUG
-void watchprint(uint16_t pos) {
+static void _watch_print(uint16_t pos) {
 	uint8_t I, J;
 	_pal_puts("\r\n");
-	_pal_puts("  _cpu_watch : "); _puthex16(_cpu_watch);
-	_pal_puts(" = "); _puthex8(_ram_read(_cpu_watch)); _putcon(':'); _puthex8(_ram_read(_cpu_watch + 1));
+	_pal_puts("  _cpu_watch : "); _pal_put_hex16(_cpu_watch);
+	_pal_puts(" = "); _pal_put_hex8(_ram_read(_cpu_watch)); _pal_put_con(':'); _pal_put_hex8(_ram_read(_cpu_watch + 1));
 	_pal_puts(" / ");
-	for (J = 0, I = _ram_read(_cpu_watch); J < 8; J++, I <<= 1) _putcon(I & 0x80 ? '1' : '0');
-	_putcon(':');
-	for (J = 0, I = _ram_read(_cpu_watch + 1); J < 8; J++, I <<= 1) _putcon(I & 0x80 ? '1' : '0');
+	for (J = 0, I = _ram_read(_cpu_watch); J < 8; J++, I <<= 1) _pal_put_con(I & 0x80 ? '1' : '0');
+	_pal_put_con(':');
+	for (J = 0, I = _ram_read(_cpu_watch + 1); J < 8; J++, I <<= 1) _pal_put_con(I & 0x80 ? '1' : '0');
 }
 
-void memdump(uint16_t pos) {
+static void _mem_dump(uint16_t pos) {
 	uint16_t h = pos;
 	uint16_t c = pos;
 	uint8_t l, i;
@@ -212,7 +212,7 @@ void memdump(uint16_t pos) {
 
 	_pal_puts("       ");
 	for (i = 0; i < 16; i++) {
-		_puthex8(ch++ & 0x0f);
+		_pal_put_hex8(ch++ & 0x0f);
 		_pal_puts(" ");
 	}
 	_pal_puts("\r\n");
@@ -221,21 +221,21 @@ void memdump(uint16_t pos) {
 		_pal_puts("---");
 	_pal_puts("\r\n");
 	for (l = 0; l < 16; l++) {
-		_puthex16(h);
+		_pal_put_hex16(h);
 		_pal_puts(" : ");
 		for (i = 0; i < 16; i++) {
-			_puthex8(_ram_read(h++));
+			_pal_put_hex8(_ram_read(h++));
 			_pal_puts(" ");
 		}
 		for (i = 0; i < 16; i++) {
 			ch = _ram_read(c++);
-			_putcon(ch > 31 && ch < 127 ? ch : '.');
+			_pal_put_con(ch > 31 && ch < 127 ? ch : '.');
 		}
 		_pal_puts("\r\n");
 	}
 }
 
-uint8_t Disasm(uint16_t pos) {
+static uint8_t _disasm(uint16_t pos) {
 	const char *txt;
 	char jr;
 	uint8_t ch = _ram_read(pos);
@@ -266,31 +266,31 @@ uint8_t Disasm(uint16_t pos) {
 		case '*':
 			txt += 2;
 			count++;
-			_puthex8(_ram_read(pos++));
+			_pal_put_hex8(_ram_read(pos++));
 			break;
 		case '^':
 			txt += 2;
 			count++;
-			_puthex8(_ram_read(pos++));
+			_pal_put_hex8(_ram_read(pos++));
 			break;
 		case '#':
 			txt += 2;
 			count += 2;
-			_puthex8(_ram_read(pos + 1));
-			_puthex8(_ram_read(pos));
+			_pal_put_hex8(_ram_read(pos + 1));
+			_pal_put_hex8(_ram_read(pos));
 			break;
 		case '@':
 			txt += 2;
 			count++;
 			jr = _ram_read(pos++);
-			_puthex16(pos + jr);
+			_pal_put_hex16(pos + jr);
 			break;
 		case '%':
-			_putch(C);
+			_pal_putch(C);
 			txt++;
 			break;
 		default:
-			_putch(*txt);
+			_pal_putch(*txt);
 			txt++;
 		}
 	}
@@ -298,7 +298,7 @@ uint8_t Disasm(uint16_t pos) {
 	return(count);
 }
 
-void Z80debug(void) {
+void _cpu_debug_out(void) {
 	uint8_t ch = 0;
 	uint16_t pos, l;
 	static const char Flags[9] = "SZ5H3PNC";
@@ -309,20 +309,20 @@ void Z80debug(void) {
 	while (loop) {
 		pos = _cpu_regs.pc;
 		_pal_puts("\r\n");
-		_pal_puts("_cpu_regs.bc:");  _puthex16(_cpu_regs.bc);
-		_pal_puts(" DE:"); _puthex16(_cpu_regs.de);
-		_pal_puts(" _cpu_regs.hl:"); _puthex16(_cpu_regs.hl);
-		_pal_puts(" _cpu_regs.af:"); _puthex16(_cpu_regs.af);
+		_pal_puts("_cpu_regs.bc:");  _pal_put_hex16(_cpu_regs.bc);
+		_pal_puts(" DE:"); _pal_put_hex16(_cpu_regs.de);
+		_pal_puts(" _cpu_regs.hl:"); _pal_put_hex16(_cpu_regs.hl);
+		_pal_puts(" _cpu_regs.af:"); _pal_put_hex16(_cpu_regs.af);
 		_pal_puts(" : [");
-		for (J = 0, I = CPU_REG_GET_LOW(_cpu_regs.af); J < 8; J++, I <<= 1) _putcon(I & 0x80 ? Flags[J] : '.');
+		for (J = 0, I = CPU_REG_GET_LOW(_cpu_regs.af); J < 8; J++, I <<= 1) _pal_put_con(I & 0x80 ? Flags[J] : '.');
 		_pal_puts("]\r\n");
-		_pal_puts("_cpu_regs.ix:");  _puthex16(_cpu_regs.ix);
-		_pal_puts(" _cpu_regs.iy:"); _puthex16(_cpu_regs.iy);
-		_pal_puts(" _cpu_regs.sp:"); _puthex16(_cpu_regs.sp);
-		_pal_puts(" _cpu_regs.pc:"); _puthex16(_cpu_regs.pc);
+		_pal_puts("_cpu_regs.ix:");  _pal_put_hex16(_cpu_regs.ix);
+		_pal_puts(" _cpu_regs.iy:"); _pal_put_hex16(_cpu_regs.iy);
+		_pal_puts(" _cpu_regs.sp:"); _pal_put_hex16(_cpu_regs.sp);
+		_pal_puts(" _cpu_regs.pc:"); _pal_put_hex16(_cpu_regs.pc);
 		_pal_puts(" : ");
 
-		Disasm(pos);
+		_disasm(pos);
 
 		if (_cpu_regs.pc == 0x0005) {
 			if (CPU_REG_GET_LOW(_cpu_regs.bc) > 40) {
@@ -335,14 +335,14 @@ void Z80debug(void) {
 		}
 
 		if (_cpu_watch != -1) {
-			watchprint(_cpu_watch);
+			_watch_print(_cpu_watch);
 		}
 
 		_pal_puts("\r\n");
 		_pal_puts("Command|? : ");
-		ch = _getch();
+		ch = _pal_getch();
 		if (ch > 21 && ch < 127)
-			_putch(ch);
+			_pal_putch(ch);
 		switch(ch) {
 		case 't':
 			loop = 0;
@@ -353,29 +353,29 @@ void Z80debug(void) {
 			_cpu_debug = 0;
 			break;
 		case 'b':
-			_pal_puts("\r\n"); memdump(_cpu_regs.bc); break;
+			_pal_puts("\r\n"); _mem_dump(_cpu_regs.bc); break;
 		case 'd':
-			_pal_puts("\r\n"); memdump(_cpu_regs.de); break;
+			_pal_puts("\r\n"); _mem_dump(_cpu_regs.de); break;
 		case 'h':
-			_pal_puts("\r\n"); memdump(_cpu_regs.hl); break;
+			_pal_puts("\r\n"); _mem_dump(_cpu_regs.hl); break;
 		case 'p':
-			_pal_puts("\r\n"); memdump(_cpu_regs.pc & 0xFF00); break;
+			_pal_puts("\r\n"); _mem_dump(_cpu_regs.pc & 0xFF00); break;
 		case 's':
-			_pal_puts("\r\n"); memdump(_cpu_regs.sp & 0xFF00); break;
+			_pal_puts("\r\n"); _mem_dump(_cpu_regs.sp & 0xFF00); break;
 		case 'x':
-			_pal_puts("\r\n"); memdump(_cpu_regs.ix & 0xFF00); break;
+			_pal_puts("\r\n"); _mem_dump(_cpu_regs.ix & 0xFF00); break;
 		case 'y':
-			_pal_puts("\r\n"); memdump(_cpu_regs.iy & 0xFF00); break;
+			_pal_puts("\r\n"); _mem_dump(_cpu_regs.iy & 0xFF00); break;
 		case 'a':
-			_pal_puts("\r\n"); memdump(glb_dma_addr); break;
+			_pal_puts("\r\n"); _mem_dump(_glb_dma_addr); break;
 		case 'l':
 			_pal_puts("\r\n");
 			I = 16;
 			l = pos;
 			while (I > 0) {
-				_puthex16(l);
+				_pal_put_hex16(l);
 				_pal_puts(" : ");
-				l += Disasm(l);
+				l += _disasm(l);
 				_pal_puts("\r\n");
 				I--;
 			}
@@ -385,7 +385,7 @@ void Z80debug(void) {
 			scanf("%04x", &bpoint);
 			_cpu_break = bpoint;
 			_pal_puts("Breakpoint set to ");
-			_puthex16(_cpu_break);
+			_pal_put_hex16(_cpu_break);
 			_pal_puts("\r\n");
 			break;
 		case 'C':
@@ -395,7 +395,7 @@ void Z80debug(void) {
 		case 'D':
 			_pal_puts(" Addr: ");
 			scanf("%04x", &bpoint);
-			memdump(bpoint);
+			_mem_dump(bpoint);
 			break;
 		case 'L':
 			_pal_puts(" Addr: ");
@@ -403,9 +403,9 @@ void Z80debug(void) {
 			I = 16;
 			l = bpoint;
 			while (I > 0) {
-				_puthex16(l);
+				_pal_put_hex16(l);
 				_pal_puts(" : ");
-				l += Disasm(l);
+				l += _disasm(l);
 				_pal_puts("\r\n");
 				I--;
 			}
@@ -421,7 +421,7 @@ void Z80debug(void) {
 			scanf("%04x", &bpoint);
 			_cpu_watch = bpoint;
 			_pal_puts("_cpu_watch set to ");
-			_puthex16(_cpu_watch);
+			_pal_put_hex16(_cpu_watch);
 			_pal_puts("\r\n");
 			break;
 		case '?':
@@ -467,7 +467,7 @@ void _cpu_run(void) {
 #ifdef DEBUG
 		if (_cpu_regs.pc == _cpu_break) {
 			_pal_puts(":BREAK at ");
-			_puthex16(_cpu_break);
+			_pal_put_hex16(_cpu_break);
 			_pal_puts(":");
 			_cpu_debug = 1;
 		}
@@ -476,7 +476,7 @@ void _cpu_run(void) {
 			_cpu_step = -1;
 		}
 		if (_cpu_debug)
-			Z80debug();
+			_cpu_debug_out();
 #endif
 
 		_cpu_regs.pcx = _cpu_regs.pc;
@@ -1051,7 +1051,7 @@ void _cpu_run(void) {
 #ifdef DEBUG
 			_pal_puts("\r\n::CPU HALTED::");	// A halt is a good indicator of broken code
 			_pal_puts("Press any key...");
-			_getch();
+			_pal_getch();
 #endif
 			_cpu_regs.pc--;
 			goto end_decode;
@@ -1737,7 +1737,7 @@ void _cpu_run(void) {
 			break;
 
 		case 0xd3:      /* OUT (nn),A */
-			cpu_out(RAM_PP(_cpu_regs.pc), CPU_REG_GET_HIGH(_cpu_regs.af));
+			_cpu_out(RAM_PP(_cpu_regs.pc), CPU_REG_GET_HIGH(_cpu_regs.af));
 			break;
 
 		case 0xd4:      /* CALL NC,nnnn */
@@ -2464,7 +2464,7 @@ void _cpu_run(void) {
 				break;
 
 			case 0x41:      /* OUT (C),B */
-				cpu_out(CPU_REG_GET_LOW(_cpu_regs.bc), CPU_REG_GET_HIGH(_cpu_regs.bc));
+				_cpu_out(CPU_REG_GET_LOW(_cpu_regs.bc), CPU_REG_GET_HIGH(_cpu_regs.bc));
 				break;
 
 			case 0x42:      /* SBC _cpu_regs.hl,_cpu_regs.bc */
@@ -2534,7 +2534,7 @@ void _cpu_run(void) {
 				break;
 
 			case 0x49:      /* OUT (C),C */
-				cpu_out(CPU_REG_GET_LOW(_cpu_regs.bc), CPU_REG_GET_LOW(_cpu_regs.bc));
+				_cpu_out(CPU_REG_GET_LOW(_cpu_regs.bc), CPU_REG_GET_LOW(_cpu_regs.bc));
 				break;
 
 			case 0x4a:      /* ADC _cpu_regs.hl,_cpu_regs.bc */
@@ -2568,7 +2568,7 @@ void _cpu_run(void) {
 				break;
 
 			case 0x51:      /* OUT (C),D */
-				cpu_out(CPU_REG_GET_LOW(_cpu_regs.bc), CPU_REG_GET_HIGH(_cpu_regs.de));
+				_cpu_out(CPU_REG_GET_LOW(_cpu_regs.bc), CPU_REG_GET_HIGH(_cpu_regs.de));
 				break;
 
 			case 0x52:      /* SBC _cpu_regs.hl,_cpu_regs.de */
@@ -2601,7 +2601,7 @@ void _cpu_run(void) {
 				break;
 
 			case 0x59:      /* OUT (C),E */
-				cpu_out(CPU_REG_GET_LOW(_cpu_regs.bc), CPU_REG_GET_LOW(_cpu_regs.de));
+				_cpu_out(CPU_REG_GET_LOW(_cpu_regs.bc), CPU_REG_GET_LOW(_cpu_regs.de));
 				break;
 
 			case 0x5a:      /* ADC _cpu_regs.hl,_cpu_regs.de */
@@ -2635,7 +2635,7 @@ void _cpu_run(void) {
 				break;
 
 			case 0x61:      /* OUT (C),H */
-				cpu_out(CPU_REG_GET_LOW(_cpu_regs.bc), CPU_REG_GET_HIGH(_cpu_regs.hl));
+				_cpu_out(CPU_REG_GET_LOW(_cpu_regs.bc), CPU_REG_GET_HIGH(_cpu_regs.hl));
 				break;
 
 			case 0x62:      /* SBC _cpu_regs.hl,_cpu_regs.hl */
@@ -2666,7 +2666,7 @@ void _cpu_run(void) {
 				break;
 
 			case 0x69:      /* OUT (C),L */
-				cpu_out(CPU_REG_GET_LOW(_cpu_regs.bc), CPU_REG_GET_LOW(_cpu_regs.hl));
+				_cpu_out(CPU_REG_GET_LOW(_cpu_regs.bc), CPU_REG_GET_LOW(_cpu_regs.hl));
 				break;
 
 			case 0x6a:      /* ADC _cpu_regs.hl,_cpu_regs.hl */
@@ -2697,7 +2697,7 @@ void _cpu_run(void) {
 				break;
 
 			case 0x71:      /* OUT (C),0 */
-				cpu_out(CPU_REG_GET_LOW(_cpu_regs.bc), 0);
+				_cpu_out(CPU_REG_GET_LOW(_cpu_regs.bc), 0);
 				break;
 
 			case 0x72:      /* SBC _cpu_regs.hl,_cpu_regs.sp */
@@ -2722,7 +2722,7 @@ void _cpu_run(void) {
 				break;
 
 			case 0x79:      /* OUT (C),A */
-				cpu_out(CPU_REG_GET_LOW(_cpu_regs.bc), CPU_REG_GET_HIGH(_cpu_regs.af));
+				_cpu_out(CPU_REG_GET_LOW(_cpu_regs.bc), CPU_REG_GET_HIGH(_cpu_regs.af));
 				break;
 
 			case 0x7a:      /* ADC _cpu_regs.hl,_cpu_regs.sp */
@@ -2787,7 +2787,7 @@ void _cpu_run(void) {
 				PF The parity of ((((_cpu_regs.hl) + L) & 7) xor B)                                       */
 			case 0xa3:      /* OUTI */
 				acu = GET_BYTE(_cpu_regs.hl);
-				cpu_out(CPU_REG_GET_LOW(_cpu_regs.bc), acu);
+				_cpu_out(CPU_REG_GET_LOW(_cpu_regs.bc), acu);
 				++_cpu_regs.hl;
 				temp = CPU_REG_GET_HIGH(_cpu_regs.bc);
 				_cpu_regs.bc -= 0x100;
@@ -2833,7 +2833,7 @@ void _cpu_run(void) {
 
 			case 0xab:      /* OUTD */
 				acu = GET_BYTE(_cpu_regs.hl);
-				cpu_out(CPU_REG_GET_LOW(_cpu_regs.bc), acu);
+				_cpu_out(CPU_REG_GET_LOW(_cpu_regs.bc), acu);
 				--_cpu_regs.hl;
 				temp = CPU_REG_GET_HIGH(_cpu_regs.bc);
 				_cpu_regs.bc -= 0x100;
@@ -2891,7 +2891,7 @@ void _cpu_run(void) {
 					temp = 0x100;
 				do {
 					acu = GET_BYTE(_cpu_regs.hl);
-					cpu_out(CPU_REG_GET_LOW(_cpu_regs.bc), acu);
+					_cpu_out(CPU_REG_GET_LOW(_cpu_regs.bc), acu);
 					++_cpu_regs.hl;
 				} while (--temp);
 				temp = CPU_REG_GET_HIGH(_cpu_regs.bc);
@@ -2950,7 +2950,7 @@ void _cpu_run(void) {
 					temp = 0x100;
 				do {
 					acu = GET_BYTE(_cpu_regs.hl);
-					cpu_out(CPU_REG_GET_LOW(_cpu_regs.bc), acu);
+					_cpu_out(CPU_REG_GET_LOW(_cpu_regs.bc), acu);
 					--_cpu_regs.hl;
 				} while (--temp);
 				temp = CPU_REG_GET_HIGH(_cpu_regs.bc);

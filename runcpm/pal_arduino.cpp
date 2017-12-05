@@ -29,7 +29,7 @@ uint8_t _pal_ram_load(uint8_t *filename, uint16_t address) {
 
 File root;
 
-int _sys_select(uint8_t *disk) {
+int _pal_select(uint8_t *disk) {
 	uint8_t result = 0;
 	File f;
 
@@ -43,7 +43,7 @@ int _sys_select(uint8_t *disk) {
 	return(result);
 }
 
-long _sys_filesize(uint8_t *filename) {
+long _pal_file_size(uint8_t *filename) {
 	long l = -1;
 	File f;
 
@@ -84,13 +84,13 @@ int _pal_make_file(uint8_t *filename) {
 	return(result);
 }
 
-int _sys_deletefile(uint8_t *filename) {
+int _pal_delete_file(uint8_t *filename) {
 	digitalWrite(EMULATOR_LED, HIGH);
 	return(SD.remove((char *)filename));
 	digitalWrite(EMULATOR_LED, LOW);
 }
 
-int _sys_movefile(char *filename, char *newname, int size) {
+int _pal_move_file(char *filename, char *newname, int size) {
 	File fold, fnew;
 	int i, result = false;
 	uint8_t c;
@@ -118,12 +118,12 @@ int _sys_movefile(char *filename, char *newname, int size) {
 	return(result);
 }
 
-int _sys_renamefile(uint8_t *filename, uint8_t *newname) {
-	return _sys_movefile((char *)filename, (char *)newname, _sys_filesize(filename));
+int _pal_rename_file(uint8_t *filename, uint8_t *newname) {
+	return _pal_move_file((char *)filename, (char *)newname, _pal_file_size(filename));
 }
 
 #ifdef DEBUG_LOG
-void _sys_logbuffer(uint8_t *buffer) {
+void _pal_log_buffer(uint8_t *buffer) {
 #ifdef DEBUG_LOG_TO_CONSOLE
 	puts((char *)buffer);
 #else
@@ -140,9 +140,9 @@ void _sys_logbuffer(uint8_t *buffer) {
 }
 #endif
 
-bool _sys_extendfile(char *fn, unsigned long fpos)
+uint8_t _pal_extend_file(char *fn, unsigned long fpos)
 {
-	uint8_t result = true;
+	uint8_t result = 0;
 	File f;
 	unsigned long i;
 
@@ -158,13 +158,13 @@ bool _sys_extendfile(char *fn, unsigned long fpos)
 		}
 		f.close();
 	} else {
-		result = false;
+		result = 1;
 	}
 	digitalWrite(EMULATOR_LED, LOW);
 	return(result);
 }
 
-uint8_t _sys_readseq(uint8_t *filename, long fpos) {
+uint8_t _pal_read_seq(uint8_t *filename, long fpos) {
 	uint8_t result = 0xff;
 	File f;
 	uint8_t bytesread;
@@ -172,7 +172,7 @@ uint8_t _sys_readseq(uint8_t *filename, long fpos) {
 	uint8_t i;
 
 	digitalWrite(EMULATOR_LED, HIGH);
-	if (_sys_extendfile((char*)filename, fpos))
+	if (!_pal_extend_file((char*)filename, fpos))
 		f = SD.open((char*)filename, O_READ);
 	if (f) {
 		if (f.seek(fpos)) {
@@ -195,12 +195,12 @@ uint8_t _sys_readseq(uint8_t *filename, long fpos) {
 	return(result);
 }
 
-uint8_t _sys_writeseq(uint8_t *filename, long fpos) {
+uint8_t _pal_write_seq(uint8_t *filename, long fpos) {
 	uint8_t result = 0xff;
 	File f;
 
 	digitalWrite(EMULATOR_LED, HIGH);
-	if (_sys_extendfile((char*)filename, fpos))
+	if (!_pal_extend_file((char*)filename, fpos))
 		f = SD.open((char*)filename, O_RDWR);
 	if (f) {
 		if (f.seek(fpos)) {
@@ -221,7 +221,7 @@ uint8_t _sys_writeseq(uint8_t *filename, long fpos) {
 	return(result);
 }
 
-uint8_t _sys_readrand(uint8_t *filename, long fpos) {
+uint8_t _pal_read_rand(uint8_t *filename, long fpos) {
 	uint8_t result = 0xff;
 	File f;
 	uint8_t bytesread;
@@ -229,7 +229,7 @@ uint8_t _sys_readrand(uint8_t *filename, long fpos) {
 	uint8_t i;
 
 	digitalWrite(EMULATOR_LED, HIGH);
-	if (_sys_extendfile((char*)filename, fpos))
+	if (!_pal_extend_file((char*)filename, fpos))
 		f = SD.open((char*)filename, O_READ);
 	if (f) {
 		if (f.seek(fpos)) {
@@ -252,12 +252,12 @@ uint8_t _sys_readrand(uint8_t *filename, long fpos) {
 	return(result);
 }
 
-uint8_t _sys_writerand(uint8_t *filename, long fpos) {
+uint8_t _pal_write_rand(uint8_t *filename, long fpos) {
 	uint8_t result = 0xff;
 	File f;
 
 	digitalWrite(EMULATOR_LED, HIGH);
-	if (_sys_extendfile((char*)filename, fpos)) {
+	if (!_pal_extend_file((char*)filename, fpos)) {
 		f = SD.open((char*)filename, O_RDWR);
 	}
 	if (f) {
@@ -278,12 +278,12 @@ uint8_t _sys_writerand(uint8_t *filename, long fpos) {
 	return(result);
 }
 
-uint8_t _dir_findnext(uint8_t isdir) {
+uint8_t _pal_find_next(uint8_t isdir) {
 	File f;
 	uint8_t result = 0xff;
 	uint8_t dirname[13];
 	char* fname;
-	bool isfile;
+	uint8_t isfile;
 	unsigned int i;
 
 	digitalWrite(EMULATOR_LED, HIGH);
@@ -311,7 +311,7 @@ uint8_t _dir_findnext(uint8_t isdir) {
 	return(result);
 }
 
-uint8_t _dir_findfirst(uint8_t isdir) {
+uint8_t _pal_find_first(uint8_t isdir) {
 #ifdef USER_SUPPORT
 	uint8_t path[4] = { '?', FOLDER_SEP, '?', 0 };
 #else
@@ -325,15 +325,15 @@ uint8_t _dir_findfirst(uint8_t isdir) {
 		root.close();
 	root = SD.open((char *)path); // Set directory search to start from the first position
 	_fcb_hostname_to_fcbname(_glb_file_name, _glb_pattern);
-	return(_dir_findnext(isdir));
+	return(_pal_find_next(isdir));
 }
 
-uint8_t _sys_truncate(char *filename, uint8_t rc) {
+uint8_t _pal_truncate(char *filename, uint8_t rc) {
 	uint8_t result = 0xff;
 	File f;
 
-	if (_sys_movefile(filename, (char *)"$$$$$$$$.$$$", _sys_filesize((uint8_t *)filename))) {
-		if (_sys_movefile((char *)"$$$$$$$$.$$$", filename, rc * 128)) {
+	if (_pal_move_file(filename, (char *)"$$$$$$$$.$$$", _pal_file_size((uint8_t *)filename))) {
+		if (_pal_move_file((char *)"$$$$$$$$.$$$", filename, rc * 128)) {
 			result = 0x00;
 		}
 	}
@@ -341,7 +341,7 @@ uint8_t _sys_truncate(char *filename, uint8_t rc) {
 }
 
 #ifdef USER_SUPPORT
-void _sys_make_userdir() {
+void _pal_make_user_dir() {
 	uint8_t d_folder = _glb_c_drive + 'A';
 	uint8_t u_folder = toupper(tohex(_glb_user_code));
 
@@ -352,7 +352,7 @@ void _sys_make_userdir() {
 #endif
 
 #define SDELAY 50
-void _console_init(void) {
+void _pal_console_init(void) {
     Serial.begin(9600);
 	while (!Serial) {	// Wait until serial is connected
 		digitalWrite(EMULATOR_LED, HIGH);
@@ -362,29 +362,29 @@ void _console_init(void) {
 	}
 }
 
-void _console_reset(void) {
+void _pale_console_reset(void) {
 
 }
 
-int _kbhit(void) {
+int _pal_kbhit(void) {
 	return(Serial.available());
 }
 
-uint8_t _getch(void) {
+uint8_t _pal_getch(void) {
 	while (!Serial.available());
 	return(Serial.read());
 }
 
-uint8_t _getche(void) {
-	uint8_t ch = _getch();
+uint8_t _pal_getche(void) {
+	uint8_t ch = _pal_getch();
 	Serial.write(ch);
 	return(ch);
 }
 
-void _putch(uint8_t ch) {
+void _pal_putch(uint8_t ch) {
 	Serial.write(ch);
 }
 
-void _clrscr(void) {
+void _pal_clrscr(void) {
 	Serial.println("\e[H\e[J");
 }

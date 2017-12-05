@@ -25,14 +25,14 @@
 int main(int argc, char *argv[]) {
 
 #ifdef DEBUG_LOG
-	_sys_deletefile((uint8_t*)DEBUG_LOG_PATH);
+	_pal_delete_file((uint8_t*)DEBUG_LOG_PATH);
 #endif
     _ram_init();
-	_console_init();
+	_pal_console_init();
     _cpm_banner();
 
 	while (1) {
-		if(!_sys_exists((uint8_t*)GLB_CCP_NAME)) {
+		if(!_pal_file_exists((uint8_t*)GLB_CCP_NAME)) {
 			_pal_puts("\r\nCan't open CCP!\r\n");
 			break;
 		} else {
@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	_console_reset();
+	_pal_console_reset();
 	_pal_puts("\r\n");
 	return(0);
 }

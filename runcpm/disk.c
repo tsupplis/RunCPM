@@ -37,7 +37,7 @@
 
 static void _error(uint8_t error) {
 	_pal_puts("\r\nBDOS Error on ");
-	_putcon('A' + _glb_c_drive);
+	_pal_put_con('A' + _glb_c_drive);
 	_pal_puts(" : ");
 	switch (error) {
 	case DISK_ERR_WRITE_PROTECT:
@@ -67,7 +67,7 @@ int _disk_select_disk(uint8_t dr) {
 	}
 
 	disk[0] += dr;
-	if (_sys_select(&disk[0])) {
+	if (_pal_select(&disk[0])) {
 		_glb_login_vector = _glb_login_vector | (1 << (disk[0] - 'A'));
 		result = 0x00;
 	} else {
@@ -203,7 +203,7 @@ static long _disk_file_size(uint16_t fcbaddr) {
 
 	if (!_disk_select_disk(_ram_read(CPM_FCB_DR(fcbaddr)))) {
 		_fcb_to_hostname(fcbaddr, &_glb_file_name[0]);
-		l = _sys_filesize(_glb_file_name);
+		l = _pal_file_size(_glb_file_name);
 		r = l % DISK_BLK_SZ;
 		if (r)
 			l = l + DISK_BLK_SZ - r;
@@ -240,7 +240,7 @@ uint8_t _disk_close_file(uint16_t fcbaddr) {
 		if (!IS_RW(fcbaddr)) {
 			_fcb_to_hostname(fcbaddr, &_glb_file_name[0]);
 			if (fcbaddr == GLB_BATCH_FCB_ADDR) {
-				_sys_truncate((char*)_glb_file_name, _ram_read(CPM_FCB_RC(fcbaddr)));
+				_pal_truncate((char*)_glb_file_name, _ram_read(CPM_FCB_RC(fcbaddr)));
                 // Truncate $$$.SUB to F->rc CP/M records so SUBMIT.COM can work
             }
 			result = 0x00;
@@ -281,7 +281,7 @@ uint8_t _disk_search_first(uint16_t fcbaddr, uint8_t isdir) {
 
 	if (!_disk_select_disk(_ram_read(CPM_FCB_DR(fcbaddr)))) {
 		_fcb_to_hostname(fcbaddr, &_glb_file_name[0]);
-		result = _dir_findfirst(isdir);
+		result = _pal_find_first(isdir);
 	}
 	return(result);
 }
@@ -290,7 +290,7 @@ uint8_t _disk_search_next(uint16_t fcbaddr, uint8_t isdir) {
     uint8_t result = 0xff;
 
     if (!_disk_select_disk(0))
-		result = _dir_findnext(isdir);
+		result = _pal_find_next(isdir);
 	return(result);
 }
 
@@ -303,7 +303,7 @@ uint8_t _disk_delete_file(uint16_t fcbaddr) {
 			result = _disk_search_first(fcbaddr, 0);	// 0 = Does not create a fake dir entry when finding the file
 			while (result != 0xff) {
 				_fcb_to_hostname(GLB_TMP_FCB_ADDR, &_glb_file_name[0]);
-				if (_sys_deletefile(&_glb_file_name[0])) {
+				if (_pal_delete_file(&_glb_file_name[0])) {
 					deleted = 0x00;
                 }
 				result = _disk_search_first(fcbaddr, 0);	// 0 = Does not create a fake dir entry when finding the file
@@ -323,7 +323,7 @@ uint8_t _disk_rename_file(uint16_t fcbaddr) {
             _ram_write(CPM_FCB_AL(fcbaddr),_ram_read(CPM_FCB_DR(fcbaddr)));
 			_fcb_to_hostname(CPM_FCB_AL(fcbaddr), &_glb_new_name[0]);
 			_fcb_to_hostname(fcbaddr, &_glb_file_name[0]);
-			if (_sys_renamefile(&_glb_file_name[0], &_glb_new_name[0]))
+			if (_pal_rename_file(&_glb_file_name[0], &_glb_new_name[0]))
 				result = 0x00;
 		} else {
 			_error(DISK_ERR_WRITE_PROTECT);
@@ -341,7 +341,7 @@ uint8_t _disk_read_seq(uint16_t fcbaddr) {
 
     if (!_disk_select_disk(_ram_read(CPM_FCB_DR(fcbaddr)))) {
 		_fcb_to_hostname(fcbaddr, &_glb_file_name[0]);
-		result = _sys_readseq(&_glb_file_name[0], fpos);
+		result = _pal_read_seq(&_glb_file_name[0], fpos);
 		if (!result) {	// Read succeeded, adjust FCB
             _ram_write(CPM_FCB_CR(fcbaddr), _ram_read(CPM_FCB_CR(fcbaddr))+1);
 			if (_ram_read(CPM_FCB_CR(fcbaddr)) > DISK_MAX_CR) {
@@ -368,7 +368,7 @@ uint8_t _disk_write_seq(uint16_t fcbaddr) {
     if (!_disk_select_disk(_ram_read(CPM_FCB_DR(fcbaddr)))) {
 		if (!IS_RW(fcbaddr)) {
 			_fcb_to_hostname(fcbaddr, &_glb_file_name[0]);
-			result = _sys_writeseq(&_glb_file_name[0], fpos);
+			result = _pal_write_seq(&_glb_file_name[0], fpos);
 			if (!result) {	// Write succeeded, adjust FCB
                 _ram_write(CPM_FCB_CR(fcbaddr), _ram_read(CPM_FCB_CR(fcbaddr))+1);
 				if (_ram_read(CPM_FCB_CR(fcbaddr)) > DISK_MAX_CR) {
@@ -397,7 +397,7 @@ uint8_t _disk_read_rand(uint16_t fcbaddr) {
 
 	if (!_disk_select_disk(_ram_read(CPM_FCB_DR(fcbaddr)))) {
 		_fcb_to_hostname(fcbaddr, &_glb_file_name[0]);
-		result = _sys_readrand(&_glb_file_name[0], fpos);
+		result = _pal_read_rand(&_glb_file_name[0], fpos);
 		if (!result) {	// Read succeeded, adjust FCB
             _ram_write(CPM_FCB_CR(fcbaddr), record & 0x7f);
             _ram_write(CPM_FCB_EX(fcbaddr), (record >> 7) & 0x1f);
@@ -416,7 +416,7 @@ uint8_t _disk_write_rand(uint16_t fcbaddr) {
 	if (!_disk_select_disk(_ram_read(CPM_FCB_DR(fcbaddr)))) {
 		if (!IS_RW(fcbaddr)) {
 			_fcb_to_hostname(fcbaddr, &_glb_file_name[0]);
-			result = _sys_writerand(&_glb_file_name[0], fpos);
+			result = _pal_write_rand(&_glb_file_name[0], fpos);
 			if (!result) {	// Write succeeded, adjust FCB
                 _ram_write(CPM_FCB_CR(fcbaddr), record & 0x7f);
                 _ram_write(CPM_FCB_EX(fcbaddr), (record >> 7) & 0x1f);
@@ -461,7 +461,7 @@ void _disk_set_user(uint8_t user) {
 							// this may create folders from G-V if this function is called from an user program
 							// It is an unwanted behavior, but kept as BDOS does it
 #ifdef USER_SUPPORT
-	_sys_make_userdir();			// Creates the user dir (0-F[G-V]) if needed
+	_pal_make_user_dir();			// Creates the user dir (0-F[G-V]) if needed
 #endif
 }
 
