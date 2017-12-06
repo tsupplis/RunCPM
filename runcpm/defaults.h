@@ -2,14 +2,14 @@
 #define _DEFAULTS_H
 
 
-#define EMULATOR_RAM_SIZE 60
+#define EMULATOR_RAM_SIZE   60
 
 #ifdef ARDUINO
 #define RAM_SPI
-#define EMULATOR_LED 13
-#define EMULATOR_HOSTOS      0x01
+#define EMULATOR_LED        13
+#define EMULATOR_HOSTOS     0x01
 #else
-#define EMULATOR_HOSTOS      0x02
+#define EMULATOR_HOSTOS     0x02
 #endif
 
 #ifdef RAM_SPI
@@ -23,8 +23,8 @@
 #endif
 
 /* Definitions for file/console based debugging */
-#define DEBUG
-#define DEBUG_LOG	// Writes extensive call trace information to RunCPM.log
+//#define DEBUG
+//#define DEBUG_LOG	// Writes extensive call trace information to RunCPM.log
 //#define DEBUG_LOG_TO_CONSOLE	// Writes debug information to console instead of file
 //#define DEBUG_LOG_ONLY 22	// If defined will log only this BDOS (or BIOS) function
 #define DEBUG_LOG_PATH "runcpm.log"
@@ -55,7 +55,5 @@
 //#define EMULATOR_BATCH0		// If this is defined, the $$$.SUB will be looked for on user area 0
 // The default behavior of DRI's CP/M 2.2 was to have $$$.SUB created on the current drive/user while looking for it
 // on drive A: current user, which made it complicated to run SUBMITs when not logged to drive A: user 0
-
-
 
 #endif
