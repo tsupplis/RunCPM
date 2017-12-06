@@ -21,12 +21,12 @@ typedef struct _cpu_regs_t {
     int32_t ir;
 } cpu_regs_t;
 
-extern cpu_regs_t _cpu_regs;
+extern cpu_regs_t cpu_regs;
 
-extern int32_t _cpu_status; /* Status of the CPU 0=running 1=end request 2=back to CCP */
-extern int32_t _cpu_debug;
-extern int32_t _cpu_break;
-extern int32_t _cpu_step;
+extern int32_t cpu_status; /* Status of the CPU 0=running 1=end request 2=back to CCP */
+extern int32_t cpu_debug;
+extern int32_t cpu_break;
+extern int32_t cpu_step;
 
 #define CPU_LOW_DIGIT(x)            ((x) & 0xf)
 #define CPU_HIGH_DIGIT(x)           (((x) >> 4) & 0xf)
@@ -42,8 +42,8 @@ extern int32_t _cpu_step;
 extern "C"
 {
 #endif
-	extern void _cpu_reset(void);
-	extern void _cpu_run(void);
+	extern void cpu_reset(void);
+	extern void cpu_run(void);
 #ifdef __cplusplus
 }
 #endif

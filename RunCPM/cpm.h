@@ -7,10 +7,10 @@
 extern "C"
 {
 #endif
-	extern void _cpm_bdos(void);
-    extern void _cpm_bios(void);
-    extern void _cpm_patch(void);
-    extern void _cpm_banner(void);
+	extern void cpm_bdos(void);
+    extern void cpm_bios(void);
+    extern void cpm_patch(void);
+    extern void cpm_banner(void);
 #ifdef __cplusplus
 }
 #endif
