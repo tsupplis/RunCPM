@@ -9,7 +9,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#define TO_HEX(x)	(x < 10 ? x + 48 : x + 87)
+#define TO_HEX(x)   (x < 10 ? x + 48 : x + 87)
 
 uint8_t pal_file_match(uint8_t *fcbname, uint8_t *pattern) {
 	uint8_t result = 1;
@@ -27,28 +27,28 @@ uint8_t pal_file_match(uint8_t *fcbname, uint8_t *pattern) {
 	return(result);
 }
 
-uint8_t pal_chready(void)		// Checks if there's a character ready for input
+uint8_t pal_chready(void)       // Checks if there's a character ready for input
 {
 	return(pal_kbhit() ? 0xff : 0x00);
 }
 
-uint8_t pal_getch_nb(void)		// Gets a character, non-blocking, no echo
+uint8_t pal_getch_nb(void)      // Gets a character, non-blocking, no echo
 {
 	return(pal_kbhit() ? pal_getch() : 0x00);
 }
 
-void pal_put_con(uint8_t ch)		// Puts a character
+void pal_put_con(uint8_t ch)        // Puts a character
 {
 	pal_putch(ch & 0x7f);
 }
 
-void pal_puts(const char *str)	// Puts a \0 terminated string
+void pal_puts(const char *str)  // Puts a \0 terminated string
 {
 	while (*str)
 		pal_put_con(*(str++));
 }
 
-void pal_put_hex8(uint8_t c)		// Puts a HH hex string
+void pal_put_hex8(uint8_t c)        // Puts a HH hex string
 {
 	uint8_t h;
 	h = c >> 4;
@@ -57,7 +57,7 @@ void pal_put_hex8(uint8_t c)		// Puts a HH hex string
 	pal_put_con(TO_HEX(h));
 }
 
-void pal_put_hex16(uint16_t w)	// puts a HHHH hex string
+void pal_put_hex16(uint16_t w)  // puts a HHHH hex string
 {
 	pal_put_hex8(w >> 8);
 	pal_put_hex8(w & 0x00ff);

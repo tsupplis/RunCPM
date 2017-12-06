@@ -2,7 +2,7 @@
 #include "ram.h"
 
 #ifndef RAM_SPI
-static uint8_t RAM[EMULATOR_RAM_SIZE*1024]={0};			// Definition of the emulated RAM
+static uint8_t RAM[EMULATOR_RAM_SIZE*1024]={0};         // Definition of the emulated RAM
 #endif
 
 #ifndef RAM_SPI
@@ -16,7 +16,7 @@ void ram_write(uint16_t address, uint8_t value) {
 #endif
 
 void ram_init() {
-   ram_fill(0,EMULATOR_RAM_SIZE*1024,0);
+	ram_fill(0,EMULATOR_RAM_SIZE*1024,0);
 }
 
 void ram_write16(uint16_t address, uint16_t value) {
@@ -26,17 +26,17 @@ void ram_write16(uint16_t address, uint16_t value) {
 }
 
 uint16_t ram_read16(uint16_t address) {
-    return (((uint16_t)(ram_read((address & 0xffff) + 1)) << 8) | ram_read(address & 0xffff));
+	return (((uint16_t)(ram_read((address & 0xffff) + 1)) << 8) | ram_read(address & 0xffff));
 }
 
 void ram_fill(uint16_t address, int size, uint8_t value) {
 	while (size--) {
 		ram_write(address++, value);
-    }
+	}
 }
 
 void ram_copy(uint16_t source, int size, uint16_t destination) {
 	while (size--) {
 		ram_write(destination++, ram_read(source++));
-    }
+	}
 }

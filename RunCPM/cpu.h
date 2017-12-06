@@ -4,21 +4,21 @@
 #include <stdint.h>
 
 typedef struct _cpu_regs_t {
-    int32_t de;
-    int32_t bc;
-    int32_t af;
-    int32_t hl;
-    int32_t pcx;
-    int32_t ix;
-    int32_t iy;
-    int32_t pc;
-    int32_t sp;
-    int32_t af1;
-    int32_t bc1;
-    int32_t de1;
-    int32_t hl1;
-    int32_t iff;
-    int32_t ir;
+	int32_t de;
+	int32_t bc;
+	int32_t af;
+	int32_t hl;
+	int32_t pcx;
+	int32_t ix;
+	int32_t iy;
+	int32_t pc;
+	int32_t sp;
+	int32_t af1;
+	int32_t bc1;
+	int32_t de1;
+	int32_t hl1;
+	int32_t iff;
+	int32_t ir;
 } cpu_regs_t;
 
 extern cpu_regs_t cpu_regs;
@@ -36,14 +36,14 @@ extern int32_t cpu_step;
 #define CPU_REG_SET_LOW(x, v)  x = (((x) & 0xff00) | ((v) & 0xff))
 #define CPU_REG_SET_HIGH(x, v) x = (((x) & 0xff) | (((v) & 0xff) << 8))
 
-#define CPU_WORD16(x)	((uint16_t)((x) & 0xffff))
+#define CPU_WORD16(x)   ((uint16_t)((x) & 0xffff))
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-	extern void cpu_reset(void);
-	extern void cpu_run(void);
+extern void cpu_reset(void);
+extern void cpu_run(void);
 #ifdef __cplusplus
 }
 #endif

@@ -10,7 +10,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#define TO_HEX(x)	(x < 10 ? x + 48 : x + 87)
+#define TO_HEX(x)   (x < 10 ? x + 48 : x + 87)
 
 /* Externals for abstracted functions need to go here */
 FILE* pal_fopen_r(uint8_t *filename);
@@ -27,21 +27,21 @@ int pal_fclose(FILE *file);
 uint8_t pal_ram_load(uint8_t *filename, uint16_t address) {
 	long l;
 	FILE *file = pal_fopen_r(filename);
-    if(!file) {
-        return 1;
-    }
+	if(!file) {
+		return 1;
+	}
 	pal_fseek(file, 0, SEEK_END);
 	l = pal_ftell(file);
 
 	pal_fseek(file, 0, SEEK_SET);
-    for(int i=0;i<l;i++) {
-        uint8_t b;
-	    pal_fread(&b, 1, 1, file); // (todo) This can overwrite past RAM space
-        ram_write(address+i,b);
-    }
+	for(int i=0; i<l; i++) {
+		uint8_t b;
+		pal_fread(&b, 1, 1, file); // (todo) This can overwrite past RAM space
+		ram_write(address+i,b);
+	}
 
 	pal_fclose(file);
-    return 0;
+	return 0;
 }
 
 /* Filesystem (disk) abstraction fuctions */
@@ -144,7 +144,7 @@ void pal_log_buffer(uint8_t *buffer) {
 	puts((char *)buffer);
 #else
 	uint8_t s = 0;
-	while (*(buffer + s))	// Computes buffer size
+	while (*(buffer + s))   // Computes buffer size
 		s++;
 	file = pal_fopen_a((uint8_t*)DEBUG_LOG_PATH);
 	pal_fwrite(buffer, 1, s, file);
@@ -187,15 +187,15 @@ uint8_t pal_write_seq(uint8_t *filename, long fpos) {
 	FILE *file = pal_fopen_rw(&filename[0]);
 	if (file != NULL) {
 		if (!pal_fseek(file, fpos, 0)) {
-            for(int i=0;i<128;i++) {
-                int8_t b=ram_read(glb_dma_addr+i);
-                if (pal_fwrite(&b, 1, 1, file))
-                    result = 0x00;
-                else {
-                    result = 0xFF;
-                    break;
-                }
-            }
+			for(int i=0; i<128; i++) {
+				int8_t b=ram_read(glb_dma_addr+i);
+				if (pal_fwrite(&b, 1, 1, file))
+					result = 0x00;
+				else {
+					result = 0xFF;
+					break;
+				}
+			}
 		} else {
 			result = 0x01;
 		}
@@ -241,15 +241,15 @@ uint8_t pal_write_rand(uint8_t *filename, long fpos) {
 	FILE *file = pal_fopen_rw(&filename[0]);
 	if (file != NULL) {
 		if (!pal_fseek(file, fpos, 0)) {
-            for(int i=0;i<128;i++) {
-                int8_t b=ram_read(glb_dma_addr+i);
-                if (pal_fwrite(&b, 1, 1, file))
-                    result = 0x00;
-                else {
-                    result = 0xFF;
-                    break;
-                }
-            }
+			for(int i=0; i<128; i++) {
+				int8_t b=ram_read(glb_dma_addr+i);
+				if (pal_fwrite(&b, 1, 1, file))
+					result = 0x00;
+				else {
+					result = 0xFF;
+					break;
+				}
+			}
 		} else {
 			result = 0x06;
 		}
@@ -335,17 +335,17 @@ uint8_t pal_getche(void) {
 }
 
 void pal_clrscr(void) {
-      int result;
-      setupterm( NULL, STDOUT_FILENO, &result );
-      if (result <= 0) return;
+	int result;
+	setupterm( NULL, STDOUT_FILENO, &result );
+	if (result <= 0) return;
 
-    putp(tigetstr( "clear" ) );
+	putp(tigetstr( "clear" ) );
 }
 
 #include <glob.h>
 
-glob_t	pglob;
-int	dir_pos;
+glob_t pglob;
+int dir_pos;
 
 uint8_t pal_find_next(uint8_t isdir)
 {
@@ -386,7 +386,7 @@ uint8_t pal_find_next(uint8_t isdir)
 }
 
 uint8_t pal_find_first(uint8_t isdir) {
-	dir_pos = 0;	// Set directory search to start from the first position
+	dir_pos = 0;    // Set directory search to start from the first position
 	fcb_hostname_to_fcbname(glb_file_name, glb_pattern);
 	return(pal_find_next(isdir));
 }
