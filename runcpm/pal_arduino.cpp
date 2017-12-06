@@ -13,6 +13,9 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#define TO_HEX(x)	(x < 10 ? x + 48 : x + 87)
+
+
 uint8_t pal_ram_load(uint8_t *filename, uint16_t address) {
 	File f;
 	uint8_t result = 1;
@@ -315,7 +318,7 @@ uint8_t pal_find_next(uint8_t isdir) {
 
 uint8_t pal_find_first(uint8_t isdir) {
 #ifdef EMULATOR_USER_SUPPORT
-	uint8_t path[4] = { '?', FOLDER_SEP, '?', 0 };
+	uint8_t path[4] = { '?', GLB_FOLDER_SEP, '?', 0 };
 #else
 	uint8_t path[2] = { '?', 0 };
 #endif
@@ -345,9 +348,9 @@ uint8_t pal_truncate(char *filename, uint8_t rc) {
 #ifdef EMULATOR_USER_SUPPORT
 void pal_make_user_dir() {
 	uint8_t d_folder = glb_c_drive + 'A';
-	uint8_t u_folder = toupper(tohex(glb_user_code));
+	uint8_t u_folder = toupper(TO_HEX(glb_user_code));
 
-	uint8_t path[4] = { d_folder, FOLDER_SEP, u_folder, 0 };
+	uint8_t path[4] = { d_folder, GLB_FOLDER_SEP, u_folder, 0 };
 
 	SD.mkdir((char*)path);
 }

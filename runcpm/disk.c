@@ -1,4 +1,3 @@
-#include "utils.h"
 #include "defaults.h"
 #include "globals.h"
 #include "cpu.h"
@@ -8,6 +7,8 @@
 
 #include <ctype.h>
 
+
+#define TO_HEX(x)	(x < 10 ? x + 48 : x + 87)
 
 #define CPM_FCB_DR(addr) (addr)
 #define CPM_FCB_FN(addr) (addr+1)
@@ -88,11 +89,11 @@ uint8_t fcb_to_hostname(uint16_t fcbaddr, uint8_t *file_name) {
 	} else {
 		*(file_name++) = glb_c_drive + 'A';
 	}
-	*(file_name++) = FOLDER_SEP;
+	*(file_name++) = GLB_FOLDER_SEP;
 
 #ifdef EMULATOR_USER_SUPPORT
-	*(file_name++) = toupper(tohex(glb_user_code));
-	*(file_name++) = FOLDER_SEP;
+	*(file_name++) = toupper(TO_HEX(glb_user_code));
+	*(file_name++) = GLB_FOLDER_SEP;
 #endif
 
 	while (i < 8) {
@@ -126,7 +127,7 @@ void fcb_hostname_to_fcb(uint16_t fcbaddr, uint8_t *file_name) {
     uint8_t i = 0;
 
 	file_name++;
-	if (*file_name == FOLDER_SEP) {	// Skips the drive and / if needed
+	if (*file_name == GLB_FOLDER_SEP) {	// Skips the drive and / if needed
 #ifdef EMULATOR_USER_SUPPORT
 		file_name += 3;
 #else
@@ -164,7 +165,7 @@ void fcb_hostname_to_fcbname(uint8_t *from, uint8_t *to) {	// Converts a string 
 	int i = 0;
 
 	from++;
-	if (*from == FOLDER_SEP) {	// Skips the drive and / if needed
+	if (*from == GLB_FOLDER_SEP) {	// Skips the drive and / if needed
 #ifdef EMULATOR_USER_SUPPORT
 		from += 3;
 #else

@@ -1,4 +1,3 @@
-#include "utils.h"
 #include "defaults.h"
 #include "pal.h"
 #include "ram.h"
@@ -9,6 +8,8 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <unistd.h>
+
+#define TO_HEX(x)	(x < 10 ? x + 48 : x + 87)
 
 uint8_t pal_file_match(uint8_t *fcbname, uint8_t *pattern) {
 	uint8_t result = 1;
@@ -51,9 +52,9 @@ void pal_put_hex8(uint8_t c)		// Puts a HH hex string
 {
 	uint8_t h;
 	h = c >> 4;
-	pal_put_con(tohex(h));
+	pal_put_con(TO_HEX(h));
 	h = c & 0x0f;
-	pal_put_con(tohex(h));
+	pal_put_con(TO_HEX(h));
 }
 
 void pal_put_hex16(uint16_t w)	// puts a HHHH hex string

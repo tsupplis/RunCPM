@@ -1,4 +1,3 @@
-#include "utils.h"
 #include "defaults.h"
 #include "globals.h"
 #include "cpu.h"
