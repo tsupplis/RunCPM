@@ -2,7 +2,7 @@
 #define _DEFAULTS_H
 
 
-#define EMULATOR_RAM_SIZE   60
+#define EMULATOR_RAM_SIZE   64
 
 #ifdef ARDUINO
 #define RAM_SPI
@@ -35,10 +35,10 @@
 
 /* Definition of which CCP to use (must define only one) */
 //#define EMULATOR_CCP_INTERNAL	// If this is defined, an internal CCP will emulated
-//#define EMULATOR_CCP_DR
+#define EMULATOR_CCP_DR
 //#define EMULATOR_CCP_CCPZ
 //#define EMULATOR_CCP_ZCPR2
-#define EMULATOR_CCP_ZCPR3
+//#define EMULATOR_CCP_ZCPR3
 //#define EMULATOR_CCP_Z80
 
 /* Definition of the CCP memory information */

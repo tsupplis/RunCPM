@@ -8,6 +8,12 @@
 extern "C"
 {
 #endif
+extern uint8_t pal_init(void);
+extern void pal_digital_set(uint16_t ind, uint16_t state);
+extern uint16_t pal_digital_get(uint16_t ind);
+extern void pal_analog_set(uint16_t ind, uint16_t state);
+extern uint16_t pal_analog_get(uint16_t ind);
+extern void pal_pin_set_mode(uint16_t pin, uint16_t);
 extern void pal_console_init(void);
 extern void pal_console_reset(void);
 extern uint8_t pal_getch(void);
@@ -33,7 +39,8 @@ extern uint8_t pal_write_rand(uint8_t *filename, long fpos);
 extern int pal_rename_file(uint8_t *filename, uint8_t *newname);
 extern int pal_delete_file(uint8_t *filename);
 extern uint8_t pal_truncate(char *fn, uint8_t rc);
-extern uint8_t pal_ram_load(uint8_t *filename, uint16_t address);
+extern uint8_t pal_load_file(uint8_t *filename, uint16_t address);
+extern uint8_t pal_load_buffer(uint8_t* src, uint32_t len, uint16_t address);
 extern void pal_log_buffer(uint8_t *buffer);
 extern int pal_kbhit(void);
 extern uint8_t pal_chready(void);

@@ -6,10 +6,6 @@
 #include "disk.h"
 #include "pal.h"
 
-#ifdef ARDUINO
-#include "Arduino.h"
-#endif
-
 /* see main.c for definition */
 
 #define NOP     0x00
@@ -19,7 +15,11 @@
 #define INa     0xdb    // Triggers a BIOS call
 #define OUTa    0xd3    // Triggers a BDOS call
 
-void cpm_banner(void) {
+#ifndef GLB_CCP_FILE
+#include "ccp.h"
+#endif
+
+static void cpm_banner(void) {
 	pal_clrscr();
 	pal_puts("CP/M 2.2 Emulator v" EMULATOR_VERSION " by Marcelo Dantas\r\n");
 	pal_puts("Arduino read/write support by Krzysztof Klis\r\n");
@@ -31,7 +31,7 @@ void cpm_banner(void) {
 	pal_puts(GLB_CCP_BANNER);
 }
 
-void cpm_patch(void) {
+static void cpm_patch(void) {
 	uint16_t i;
 
 	//**********  Patch CP/M page zero into the memory  **********
@@ -95,6 +95,52 @@ void cpm_patch(void) {
 	ram_write(i++, 0x00);
 	ram_write(i++, 0x02);   /* off - Number of system reserved tracks at the beginning of the ( logical ) disk */
 	ram_write(i++, 0x00);
+}
+
+uint8_t cpm_init() {
+    if(!pal_init()) {
+        pal_puts("Unable to initial the system. CPU halted.\r\n");
+        return 0;
+    }
+    #ifdef DEBUG_LOG
+    	pal_delete_file((uint8_t*)DEBUG_LOG_PATH);
+    #endif
+	ram_init();
+	pal_console_init();
+    cpm_banner();
+    return 1;
+}
+
+void cpm_loop() {
+    while (1) {
+#ifdef GLB_CCP_FILE
+        if(!pal_file_exists((uint8_t*)GLB_CCP_NAME)) {
+            pal_puts("Unable to find CCP. CPU halted.\r\n");
+            break;
+        }
+        if (pal_load_file((uint8_t*)GLB_CCP_NAME, GLB_CCP_ADDR)) {
+            pal_puts("Unable to load CCP. CPU halted.\r\n");
+            break;
+        }
+#else
+        if (pal_load_buffer(ccp_bin, ccp_len, GLB_CCP_ADDR)) {
+            fprintf(stderr, "%p %u\n",ccp_bin, ccp_len);
+            pal_puts("Unable to load CCP. CPU halted.\r\n");
+            break;
+        }
+#endif
+        cpm_patch();    // Patches the CP/M entry points and other things in
+        cpu_reset();    // Resets the Z80 CPU
+        CPU_REG_SET_LOW(cpu_regs.bc, ram_read(0x0004)); // Sets C to the current drive/user
+        cpu_regs.pc = GLB_CCP_ADDR;     // Sets CP/M application jump point
+        cpu_run();          // Starts simulation
+        if (cpu_status == 1) { // This is set by a call to BIOS 0 - ends CP/M
+            pal_puts("BIOS 0 call, exiting.");
+            break;
+        }
+    }
+	pal_console_reset();
+	pal_puts("\r\n");
 }
 
 #ifdef DEBUG_LOG
@@ -264,6 +310,7 @@ void cpm_bios(void) {
 
 	switch (ch) {
 	case 0x00:
+        fprintf(stderr, "------ cpu status 1\n");
 		cpu_status = 1;         // 0 - BOOT - Ends RunCPM
 		break;
 	case 0x03:
@@ -684,38 +731,36 @@ void cpm_bdos(void) {
 	case 40:
 		cpu_regs.hl = disk_write_rand(cpu_regs.de);
 		break;
-#ifdef ARDUINO
 	/*
 	   C = 220 (DCh) : PinMode
 	 */
 	case 220:
-		pinMode(CPU_REG_GET_HIGH(cpu_regs.de), CPU_REG_GET_LOW(cpu_regs.de));
+		pal_pin_set_mode(CPU_REG_GET_HIGH(cpu_regs.de), CPU_REG_GET_LOW(cpu_regs.de));
 		break;
 	/*
 	   C = 221 (DDh) : DigitalRead
 	 */
 	case 221:
-		cpu_regs.hl = digitalRead(CPU_REG_GET_HIGH(cpu_regs.de));
+		cpu_regs.hl = pal_digital_get(CPU_REG_GET_HIGH(cpu_regs.de));
 		break;
 	/*
 	   C = 222 (DEh) : DigitalWrite
 	 */
 	case 222:
-		digitalWrite(CPU_REG_GET_HIGH(cpu_regs.de), CPU_REG_GET_LOW(cpu_regs.de));
+		pal_digital_set(CPU_REG_GET_HIGH(cpu_regs.de), CPU_REG_GET_LOW(cpu_regs.de));
 		break;
 	/*
 	   C = 223 (DFh) : AnalogRead
 	 */
 	case 223:
-		cpu_regs.hl = analogRead(CPU_REG_GET_HIGH(cpu_regs.de));
+		cpu_regs.hl = pal_analog_get(CPU_REG_GET_HIGH(cpu_regs.de));
 		break;
 	/*
 	   C = 224 (E0h) : AnalogWrite
 	 */
 	case 224:
-		analogWrite(CPU_REG_GET_HIGH(cpu_regs.de), CPU_REG_GET_LOW(cpu_regs.de));
+		pal_analog_set(CPU_REG_GET_HIGH(cpu_regs.de), CPU_REG_GET_LOW(cpu_regs.de));
 		break;
-#endif
 	/*
 	   C = 250 (FAh) : EMULATOR_HOSTOS
 	   Returns: A = 0x00 - Windows / 0x01 - Arduino / 0x02 - Posix / 0x03 - Dos
@@ -743,6 +788,16 @@ void cpm_bdos(void) {
 	case 253:
 		cpu_regs.hl = GLB_CCP_ADDR;
 		break;
+    /*
+	   C = 102 (66h) : Get file date and time
+	 */
+	case 102:
+        pal_puts("\r\nUnimplemented BDOS call (Get Time/Date).\r\n");
+        pal_puts("C = 0x");
+        pal_put_hex8(ch);
+        pal_puts("\r\n");
+		cpu_regs.hl = 0xFFFF;
+        break;
 	/*
 	   Unimplemented calls get listed
 	 */

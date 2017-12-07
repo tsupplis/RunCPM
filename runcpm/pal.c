@@ -11,6 +11,16 @@
 
 #define TO_HEX(x)   (x < 10 ? x + 48 : x + 87)
 
+uint8_t pal_load_buffer(uint8_t* src, uint32_t len, uint16_t address) {
+	int i;
+
+    for(i=0; i<len; i++) {
+		ram_write(address+i,src[i]);
+	}
+	return 0;
+}
+
+
 uint8_t pal_file_match(uint8_t *fcbname, uint8_t *pattern) {
 	uint8_t result = 1;
 	uint8_t i;

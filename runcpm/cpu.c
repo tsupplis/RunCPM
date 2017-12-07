@@ -467,9 +467,13 @@ void cpu_run(void) {
   register uint32_t op;
   register uint32_t adr;
 
-  /* main instruction fetch/decode loop */
-  while (!cpu_status) {	/* loop until cpu_status != 0 */
 
+  /* main instruction fetch/decode loop */
+  while (1) {	/* loop until cpu_status != 0 */
+
+    if (cpu_status) {
+        break;
+    }
 #ifdef DEBUG
     if (cpu_regs.pc == cpu_break) {
       pal_puts(":BREAK at ");

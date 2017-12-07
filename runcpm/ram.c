@@ -2,7 +2,7 @@
 #include "ram.h"
 
 #ifndef RAM_SPI
-static uint8_t RAM[EMULATOR_RAM_SIZE*1024]={0};         // Definition of the emulated RAM
+static uint8_t RAM[64*1024]={0};         // Definition of the emulated RAM
 #endif
 
 #ifndef RAM_SPI

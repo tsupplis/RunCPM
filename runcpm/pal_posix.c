@@ -22,10 +22,30 @@ int pal_fclose(FILE *file);
 
 #ifndef ARDUINO
 
-/* Memory abstraction functions */
-/*===============================================================================*/
-uint8_t pal_ram_load(uint8_t *filename, uint16_t address) {
+uint8_t pal_init() {
+    return 1;
+}
+
+void pal_digital_set(uint16_t ind, uint16_t state) {
+}
+
+void pal_pin_set_mode(uint16_t ind, uint16_t mode) {
+}
+
+uint16_t pal_digital_get(uint16_t ind) {
+    return 0;
+}
+
+void pal_analog_set(uint16_t ind, uint16_t state) {
+}
+
+uint16_t pal_analog_get(uint16_t ind) {
+    return 0;
+}
+
+uint8_t pal_load_file(uint8_t *filename, uint16_t address) {
 	long l;
+    int i;
 	FILE *file = pal_fopen_r(filename);
 	if(!file) {
 		return 1;
@@ -34,7 +54,7 @@ uint8_t pal_ram_load(uint8_t *filename, uint16_t address) {
 	l = pal_ftell(file);
 
 	pal_fseek(file, 0, SEEK_SET);
-	for(int i=0; i<l; i++) {
+	for(i=0; i<l; i++) {
 		uint8_t b;
 		pal_fread(&b, 1, 1, file); // (todo) This can overwrite past RAM space
 		ram_write(address+i,b);
@@ -183,11 +203,12 @@ uint8_t pal_read_seq(uint8_t *filename, long fpos) {
 
 uint8_t pal_write_seq(uint8_t *filename, long fpos) {
 	uint8_t result = 0xff;
+    int i;
 
 	FILE *file = pal_fopen_rw(&filename[0]);
 	if (file != NULL) {
 		if (!pal_fseek(file, fpos, 0)) {
-			for(int i=0; i<128; i++) {
+			for(i=0; i<128; i++) {
 				int8_t b=ram_read(glb_dma_addr+i);
 				if (pal_fwrite(&b, 1, 1, file))
 					result = 0x00;
@@ -211,11 +232,11 @@ uint8_t pal_read_rand(uint8_t *filename, long fpos) {
 	uint8_t result = 0xff;
 	uint8_t bytesread;
 	uint8_t dmabuf[128];
-	uint8_t i;
 
 	FILE *file = pal_fopen_r(&filename[0]);
 	if (file != NULL) {
 		if (!pal_fseek(file, fpos, 0)) {
+            uint8_t i;
 			for (i = 0; i < 128; i++)
 				dmabuf[i] = 0x1a;
 			bytesread = (uint8_t)pal_fread(&dmabuf[0], 1, 128, file);
@@ -241,7 +262,8 @@ uint8_t pal_write_rand(uint8_t *filename, long fpos) {
 	FILE *file = pal_fopen_rw(&filename[0]);
 	if (file != NULL) {
 		if (!pal_fseek(file, fpos, 0)) {
-			for(int i=0; i<128; i++) {
+            uint8_t i;
+			for(i=0; i<128; i++) {
 				int8_t b=ram_read(glb_dma_addr+i);
 				if (pal_fwrite(&b, 1, 1, file))
 					result = 0x00;

@@ -4,15 +4,11 @@ PROG = runcpm
 
 MFILE = Makefile
 
-# Compiler command
-CC = gcc
-#CC = gcc -DDEBUG=1 -DDEBUGLOG=1
-
 # Flags to pass to the compiler - add "-g" to include debug information
-CFLAGS = -Wall -O0 -fPIC -Wno-unused-variable -g
+CFLAGS =-Wall -g -fPIC 
+#CFLAGS =-Wall -O0 -fPIC 
 
-# Flags to pass to the linker
-LDFLAGS = -lncurses -lm -ldl
+LDFLAGS = -lncurses 
 
 # Objects to build
 OBJS = ram.o cpu.o main.o cpm.o disk.o pal.o globals.o pal_posix.o

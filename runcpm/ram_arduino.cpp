@@ -1,10 +1,8 @@
 #include "defaults.h"
 #include "ram.h"
 
-#ifdef ARDUINO
-
 #ifndef RAM_SPI
-static uint8_t RAM[EMULATOR_RAM_SIZE*1024]={0};         // Definition of the emulated RAM
+static uint8_t RAM[64*1024]={0};         // Definition of the emulated RAM
 #else
 #include <SPI.h>
 #include <SRAM_23LC.h>
@@ -26,5 +24,3 @@ void ram_write(uint16_t address, uint8_t value) {
 	RAM[address] = value;
 #endif
 }
-
-#endif

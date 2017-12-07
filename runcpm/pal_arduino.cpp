@@ -4,6 +4,7 @@
 #include "ram.h"
 #include "disk.h"
 
+#include <Arduino.h>
 #include <SD.h>
 
 #include <ctype.h>
@@ -14,7 +15,33 @@
 
 #define TO_HEX(x)   (x < 10 ? x + 48 : x + 87)
 
-uint8_t pal_ram_load(uint8_t *filename, uint16_t address) {
+uint8_t pal_init() {
+    pinMode(EMULATOR_LED, OUTPUT);
+	digitalWrite(EMULATOR_LED, LOW);
+    return SD.begin(SD_SPI_CS)?1:0;
+}
+
+void pal_digital_set(uint16_t ind, uint16_t state) {
+    digitalWrite(ind, state);
+}
+
+void pal_pin_set_mode(uint16_t pin, uint16_t mode) {
+    pinMode(pin,mode);
+}
+
+uint16_t pal_digital_get(uint16_t ind) {
+    return digitalRead(ind);
+}
+
+void pal_analog_set(uint16_t ind, uint16_t state) {
+    analogWrite(ind, state);
+}
+
+uint16_t pal_analog_get(uint16_t ind) {
+    return analogRead(ind);
+}
+
+uint8_t pal_load_file(uint8_t *filename, uint16_t address) {
 	File f;
 	uint8_t result = 1;
 
@@ -29,6 +56,11 @@ uint8_t pal_ram_load(uint8_t *filename, uint16_t address) {
 }
 
 File root;
+
+uint8_t pal_file_exists(uint8_t *filename) {
+	return SD.exists((char*)filename);
+}
+
 
 int pal_select(uint8_t *disk) {
 	uint8_t result = 0;
@@ -363,7 +395,7 @@ void pal_console_init(void) {
 	}
 }
 
-void _pale_console_reset(void) {
+void pal_console_reset(void) {
 
 }
 
