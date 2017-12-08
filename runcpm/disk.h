@@ -25,6 +25,7 @@ extern int disk_select_disk(uint8_t dr);
 extern uint8_t disk_check_sub(void);
 extern void fcb_hostname_to_fcb(uint16_t fcbaddr, uint8_t *filename);
 extern void fcb_hostname_to_fcbname(uint8_t *from, uint8_t *to);
+extern uint8_t fcb_to_hostname(uint16_t fcbaddr, uint8_t *file_name);
 #ifdef __cplusplus
 }
 #endif

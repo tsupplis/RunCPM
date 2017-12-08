@@ -22,6 +22,8 @@
 #define SD_SPI_CS 4
 #endif
 
+#define EMULATOR_HAS_LUA
+
 /* Definitions for file/console based debugging */
 //#define DEBUG
 //#define DEBUG_LOG	// Writes extensive call trace information to RunCPM.log

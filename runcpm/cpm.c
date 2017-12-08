@@ -6,6 +6,10 @@
 #include "disk.h"
 #include "pal.h"
 
+#ifdef EMULATOR_HAS_LUA
+#include "luah.h"
+#endif
+
 /* see main.c for definition */
 
 #define NOP     0x00
@@ -774,6 +778,15 @@ void cpm_bdos(void) {
 	case 253:
 		cpu_regs.hl = GLB_CCP_ADDR;
 		break;
+#ifdef EMULATOR_HAS_LUA
+		/*
+		C = 254 (FEh) : Run Lua file
+		*/
+	case 254:
+		cpu_regs.hl = luah_run(cpu_regs.de);
+		break;
+#endif
+
     /*
 	   C = 102 (66h) : Get file date and time
 	 */

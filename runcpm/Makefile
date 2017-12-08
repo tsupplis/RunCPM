@@ -5,13 +5,13 @@ PROG = runcpm
 MFILE = Makefile
 
 # Flags to pass to the compiler - add "-g" to include debug information
-CFLAGS =-Wall -g -fPIC 
+CFLAGS =-Wall -g -fPIC -I../lua
 #CFLAGS =-Wall -O0 -fPIC 
 
-LDFLAGS = -lncurses 
+LDFLAGS = -lncurses -L../lua -llua
 
 # Objects to build
-OBJS = ram.o cpu.o main.o cpm.o disk.o pal.o globals.o pal_posix.o
+OBJS = ram.o cpu.o main.o cpm.o disk.o pal.o globals.o pal_posix.o luah.o
 
 # Clean up program
 RM = rm -f
@@ -25,6 +25,9 @@ $(PROG): $(OBJS)
 
 pal_posix.o: pal_posix.c $(wildcard *.h) $(MFILE)
 	$(CC) $(CFLAGS) -c pal_posix.c
+
+luah.o: luah.c $(wildcard *.h) $(MFILE)
+	$(CC) $(CFLAGS) -c luah.c
 
 pal.o: pal.c $(wildcard *.h) $(MFILE)
 	$(CC) $(CFLAGS) -c pal.c

@@ -479,3 +479,4 @@ uint8_t disk_check_sub(void) {
 	glb_user_code = o_code;                             // Restores the current user code
 	return (result);
 }
+
