@@ -5,8 +5,8 @@
 #define EMULATOR_RAM_SIZE   64
 
 #ifdef ARDUINO
-#define RAM_SPI
-#define EMULATOR_LED        13
+//#define RAM_SPI
+#define EMULATOR_LED        2
 #define EMULATOR_HOSTOS     0x01
 #else
 #define EMULATOR_HOSTOS     0x02
@@ -34,8 +34,8 @@
 #define EMULATOR_VERSION_BCD 0x29
 
 /* Definition of which CCP to use (must define only one) */
-//#define EMULATOR_CCP_INTERNAL	// If this is defined, an internal CCP will emulated
-#define EMULATOR_CCP_DR
+#define EMULATOR_CCP_INTERNAL	// If this is defined, an internal CCP will emulated
+//#define EMULATOR_CCP_DR
 //#define EMULATOR_CCP_CCPZ
 //#define EMULATOR_CCP_ZCPR2
 //#define EMULATOR_CCP_ZCPR3

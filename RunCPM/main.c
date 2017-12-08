@@ -13,18 +13,28 @@
 
 #include "defaults.h"
 #include "globals.h"
+#include "pal.h"
+#include "ram.h"
 #include "cpm.h"        
 
 
 #ifndef ARDUINO
 
 int main(int argc, char *argv[]) {
-    if(cpm_init()) {
-        cpm_loop();
-    } else {
+    pal_console_init();
+    pal_puts("Coming up....\r\n");
+    if(!pal_init()) {
+        pal_puts("Unable to initialize the system. CPU halted.\r\n");
         return -1;
     }
-	return 0;
+    #ifdef DEBUG_LOG
+        pal_delete_file((uint8_t*)DEBUG_LOG_PATH);
+    #endif
+    ram_init();
+    cpm_banner();
+    cpm_loop();
+    pal_console_reset();
+    return 0;
 }
 
 #endif

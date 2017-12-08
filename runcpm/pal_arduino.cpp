@@ -1,11 +1,11 @@
 #include "defaults.h"
+#include <Arduino.h>
+#include <SD.h>
+
 #include "globals.h"
 #include "pal.h"
 #include "ram.h"
 #include "disk.h"
-
-#include <Arduino.h>
-#include <SD.h>
 
 #include <ctype.h>
 #include <stdio.h>
@@ -18,7 +18,11 @@
 uint8_t pal_init() {
     pinMode(EMULATOR_LED, OUTPUT);
 	digitalWrite(EMULATOR_LED, LOW);
-    return SD.begin(SD_SPI_CS)?1:0;
+#ifdef BUILTIN_SDCARD
+    return SD.begin(BUILTIN_SDCARD);
+#else
+    return SD.begin(SD_SPI_CS);
+#endif
 }
 
 void pal_digital_set(uint16_t ind, uint16_t state) {
@@ -345,13 +349,13 @@ uint8_t pal_find_next(uint8_t isdir) {
 }
 
 uint8_t pal_find_first(uint8_t isdir) {
-#ifdef USER_SUPPORT
+#ifdef EMULATOR_USER_SUPPORT
 	uint8_t path[4] = { '?', FOLDER_SEP, '?', 0 };
 #else
 	uint8_t path[2] = { '?', 0 };
 #endif
 	path[0] = glb_file_name[0];
-#ifdef USER_SUPPORT
+#ifdef EMULATOR_USER_SUPPORT
 	path[2] = glb_file_name[2];
 #endif
 	if (root)

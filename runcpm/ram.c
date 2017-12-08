@@ -1,11 +1,9 @@
 #include "defaults.h"
 #include "ram.h"
 
-#ifndef RAM_SPI
+#ifndef ARDUINO
 static uint8_t RAM[64*1024]={0};         // Definition of the emulated RAM
-#endif
 
-#ifndef RAM_SPI
 uint8_t ram_read(uint16_t address) {
 	return(RAM[address]);
 }

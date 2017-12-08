@@ -7,10 +7,10 @@
 extern "C"
 {
 #endif
-extern uint8_t cpm_init(void);
 extern void cpm_bdos(void);
 extern void cpm_bios(void);
 extern void cpm_loop(void);
+extern void cpm_banner(void);
 #ifdef __cplusplus
 }
 #endif

@@ -19,7 +19,7 @@
 #include "ccp.h"
 #endif
 
-static void cpm_banner(void) {
+void cpm_banner(void) {
 	pal_clrscr();
 	pal_puts("CP/M 2.2 Emulator v" EMULATOR_VERSION " by Marcelo Dantas\r\n");
 	pal_puts("Arduino read/write support by Krzysztof Klis\r\n");
@@ -97,19 +97,6 @@ static void cpm_patch(void) {
 	ram_write(i++, 0x00);
 }
 
-uint8_t cpm_init() {
-    if(!pal_init()) {
-        pal_puts("Unable to initial the system. CPU halted.\r\n");
-        return 0;
-    }
-    #ifdef DEBUG_LOG
-    	pal_delete_file((uint8_t*)DEBUG_LOG_PATH);
-    #endif
-	ram_init();
-	pal_console_init();
-    cpm_banner();
-    return 1;
-}
 
 void cpm_loop() {
     while (1) {
@@ -139,7 +126,6 @@ void cpm_loop() {
             break;
         }
     }
-	pal_console_reset();
 	pal_puts("\r\n");
 }
 
