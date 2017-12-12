@@ -52,12 +52,13 @@
 #define EMULATOR_VERSION_BCD 0x29
 
 /* Definition of which CCP to use (must define only one) */
-#define EMULATOR_CCP_INTERNAL	// If this is defined, an internal CCP will emulated
+//#define EMULATOR_CCP_INTERNAL	// If this is defined, an internal CCP will emulated
 //#define EMULATOR_CCP_DR
 //#define EMULATOR_CCP_CCPZ
 //#define EMULATOR_CCP_ZCPR2
 //#define EMULATOR_CCP_ZCPR3
 //#define EMULATOR_CCP_Z80
+#define EMULATOR_CCP_EMULATED
 
 /* Definition of the CCP memory information */
 //

@@ -52,7 +52,8 @@ PROG = runcpm
 MFILE = Makefile
 
 # Objects to build
-OBJS = ram.o cpu.o main.o cpm.o disk.o pal.o globals.o pal_posixish.o luah.o
+OBJS = ram.o cpu.o main.o cpm.o disk.o pal.o globals.o pal_posixish.o luah.o \
+ ccp.o ccp_emulated.o
 
 # Clean up program
 RM = rm -f
@@ -61,16 +62,16 @@ RM = rm -f
 
 all: $(PLAT)
 
-macosx: 
+macosx:
 	make prog PLAT=$@
 
-linux: 
+linux:
 	make prog PLAT=$@
 
-djgpp: 
+djgpp:
 	make prog PLAT=$@
 
-mingw: 
+mingw:
 	make prog PLAT=$@
 
 none:
@@ -101,6 +102,9 @@ cpu.o: cpu.c $(wildcard *.h) $(MFILE)
 cpm.o: cpm.c $(wildcard *.h) $(MFILE)
 	$(CC) $(CFLAGS) -c cpm.c
 
+ccp.o: ccp.c $(wildcard *.h) $(MFILE)
+	$(CC) $(CFLAGS) -c ccp.c
+
 main.o: main.c $(wildcard *.h) $(MFILE)
 	$(CC) $(CFLAGS) -c main.c
 
@@ -113,4 +117,4 @@ globals.o: globals.c $(wildcard *.h) $(MFILE)
 .PHONY: clean
 clean:
 	$(RM) *.o
-	$(RM) $(PROG) $(PROG)$(PROG_EXT) 
+	$(RM) $(PROG) $(PROG)$(PROG_EXT)

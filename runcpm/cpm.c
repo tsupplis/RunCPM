@@ -114,17 +114,24 @@ void cpm_loop() {
             break;
         }
 #else
+#ifdef EMULATOR_CCP_INTERNAL
         if (pal_load_buffer(ccp_bin, ccp_len, GLB_CCP_ADDR)) {
             fprintf(stderr, "%p %u\n",ccp_bin, ccp_len);
             pal_puts("Unable to load CCP. CPU halted.\r\n");
             break;
         }
 #endif
+#endif
         cpm_patch();    // Patches the CP/M entry points and other things in
+#ifdef EMULATOR_CCP_EMULATED
+        cpu_status=0;
+        ccp();
+#else
         cpu_reset();    // Resets the Z80 CPU
         CPU_REG_SET_LOW(cpu_regs.bc, ram_read(0x0004)); // Sets C to the current drive/user
         cpu_regs.pc = GLB_CCP_ADDR;     // Sets CP/M application jump point
         cpu_run();          // Starts simulation
+#endif
         if (cpu_status == 1) { // This is set by a call to BIOS 0 - ends CP/M
             pal_puts("BIOS 0 call, exiting.");
             break;

@@ -63,11 +63,19 @@
 #define GLB_CCP_ADDR        (GLB_BDOS_JUMP_PAGE-0x0800)
 #endif
 //
+#ifdef EMULATOR_CCP_EMULATED
+#define GLB_CCP_NAME		"Emulated v1.3"			// Will use the CCP from ccp.h
+#define GLB_CCP_VERSION	0x13
+#define GLB_BATCH_FCB_ADDR	(GLB_TMP_FCB_ADDR + 36)
+#define GLB_CCP_ADDR		(GLB_BDOS_JUMP_PAGE-0x0800)
+#endif
+
 #ifdef EMULATOR_CCP_INTERNAL
 #ifdef RAM_SIZE
 #undef RAM_SIZE
 #define RAM_SIZE 64
 #endif
+
 #define GLB_CCP_MEM
 #define GLB_CCP_NAME        "CCP-ZCP3." GLB_STR(EMULATOR_RAM_SIZE) "K(I)"
 #define GLB_CCP_VERSION 0x03
