@@ -103,40 +103,40 @@ static void cpm_patch(void) {
 
 
 void cpm_loop() {
-    while (1) {
+	while (1) {
 #ifdef GLB_CCP_FILE
-        if(!pal_file_exists((uint8_t*)GLB_CCP_NAME)) {
-            pal_puts("Unable to find CCP. CPU halted.\r\n");
-            break;
-        }
-        if (pal_load_file((uint8_t*)GLB_CCP_NAME, GLB_CCP_ADDR)) {
-            pal_puts("Unable to load CCP. CPU halted.\r\n");
-            break;
-        }
+		if(!pal_file_exists((uint8_t*)GLB_CCP_NAME)) {
+			pal_puts("Unable to find CCP. CPU halted.\r\n");
+			break;
+		}
+		if (pal_load_file((uint8_t*)GLB_CCP_NAME, GLB_CCP_ADDR)) {
+			pal_puts("Unable to load CCP. CPU halted.\r\n");
+			break;
+		}
 #else
 #ifdef EMULATOR_CCP_INTERNAL
-        if (pal_load_buffer(ccp_bin, ccp_len, GLB_CCP_ADDR)) {
-            fprintf(stderr, "%p %u\n",ccp_bin, ccp_len);
-            pal_puts("Unable to load CCP. CPU halted.\r\n");
-            break;
-        }
+		if (pal_load_buffer(ccp_bin, ccp_len, GLB_CCP_ADDR)) {
+			fprintf(stderr, "%p %u\n",ccp_bin, ccp_len);
+			pal_puts("Unable to load CCP. CPU halted.\r\n");
+			break;
+		}
 #endif
 #endif
-        cpm_patch();    // Patches the CP/M entry points and other things in
+		cpm_patch();    // Patches the CP/M entry points and other things in
 #ifdef EMULATOR_CCP_EMULATED
-        cpu_status=0;
-        ccp();
+		cpu_status=0;
+		ccp();
 #else
-        cpu_reset();    // Resets the Z80 CPU
-        CPU_REG_SET_LOW(cpu_regs.bc, ram_read(0x0004)); // Sets C to the current drive/user
-        cpu_regs.pc = GLB_CCP_ADDR;     // Sets CP/M application jump point
-        cpu_run();          // Starts simulation
+		cpu_reset();    // Resets the Z80 CPU
+		CPU_REG_SET_LOW(cpu_regs.bc, ram_read(0x0004)); // Sets C to the current drive/user
+		cpu_regs.pc = GLB_CCP_ADDR;     // Sets CP/M application jump point
+		cpu_run();          // Starts simulation
 #endif
-        if (cpu_status == 1) { // This is set by a call to BIOS 0 - ends CP/M
-            pal_puts("BIOS 0 call, exiting.");
-            break;
-        }
-    }
+		if (cpu_status == 1) { // This is set by a call to BIOS 0 - ends CP/M
+			pal_puts("BIOS 0 call, exiting.");
+			break;
+		}
+	}
 	pal_puts("\r\n");
 }
 
@@ -785,24 +785,24 @@ void cpm_bdos(void) {
 		cpu_regs.hl = GLB_CCP_ADDR;
 		break;
 #ifdef EMULATOR_HAS_LUA
-		/*
-		C = 254 (FEh) : Run Lua file
-		*/
+	/*
+	   C = 254 (FEh) : Run Lua file
+	 */
 	case 254:
 		cpu_regs.hl = luah_run(cpu_regs.de);
 		break;
 #endif
 
-    /*
+	/*
 	   C = 102 (66h) : Get file date and time
 	 */
 	case 102:
-        pal_puts("\r\nUnimplemented BDOS call (Get Time/Date).\r\n");
-        pal_puts("C = 0x");
-        pal_put_hex8(ch);
-        pal_puts("\r\n");
+		pal_puts("\r\nUnimplemented BDOS call (Get Time/Date).\r\n");
+		pal_puts("C = 0x");
+		pal_put_hex8(ch);
+		pal_puts("\r\n");
 		cpu_regs.hl = 0xFFFF;
-        break;
+		break;
 	/*
 	   Unimplemented calls get listed
 	 */
