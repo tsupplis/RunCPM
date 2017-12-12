@@ -117,4 +117,4 @@ globals.o: globals.c $(wildcard *.h) $(MFILE)
 .PHONY: clean
 clean:
 	$(RM) *.o
-	$(RM) $(PROG) $(PROG)$(PROG_EXT)
+	$(RM) $(PROG) $(PROG).exe
