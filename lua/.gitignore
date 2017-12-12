@@ -1,3 +1,7 @@
 *.a
 *.dll
+lua
+luac
+lua.exe
+luac.exe
 
