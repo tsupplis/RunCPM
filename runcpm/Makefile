@@ -1,21 +1,52 @@
-# pal Makefile for runcpm
+ifeq ($(PLAT),)
+PLAT=none
+endif
 
-# Flags to pass to the compiler - add "-g" to include debug information
-#CFLAGS=-Wall -g -fPIC -I../lua -DEMULATOR_HAS_LUA
-#LDFLAGS=-lncurses -L../lua -llua
-#PROG_EXT=
+PLATS=linux macosx mingw djgpp
 
-CFLAGS=-Wall -O0 -fPIC 
-LDFLAGS=-lncurses
+#DEBUG=yes
+LUA=yes
+
 PROG_EXT=
 
-#CC=i586-pc-msdosdjgpp-gcc
-#CFLAGS=-Wall -O0
-#PROG_EXT=.exe
+STRIP=strip
+CFLAGS=-Wall
+LDFLAGS=
 
-#CC=i586-mingw32-gcc -mconsole
-#CFLAGS=-Wall -O0
-#PROG_EXT=.exe
+ifeq ($(PLAT),macosx)
+LDFLAGS=-lncurses
+endif
+
+ifeq ($(PLAT),linux)
+CFLAGS+=-fPIC
+LDFLAGS+=-lncurses
+endif
+
+ifeq ($(PLAT),djgpp)
+LUA=false
+CC=i586-pc-msdosdjgpp-gcc
+STRIP=i586-pc-msdosdjgpp-strip
+CFLAGS=-Wall
+PROG_EXT=.exe
+endif
+
+ifeq ($(PLAT),mingw)
+LUA=false
+CC=i586-mingw32-gcc -mconsole
+STRIP=i586-mingw32-strip
+PROG_EXT=.exe
+endif
+
+ifeq ($(DEBUG),yes)
+CFLAGS+=-g
+else
+CFLAGS+=-O0
+endif
+
+ifeq ($(LUA),yes)
+CFLAGS+= -I../lua -DEMULATOR_HAS_LUA
+LDFLAGS+=-L../lua -llua -ldl -lm
+endif
 
 PROG = runcpm
 MFILE = Makefile
@@ -28,10 +59,29 @@ RM = rm -f
 
 #------------------------------------------------------------------------
 
-all: $(PROG)$(PROG_EXT)
+all: $(PLAT)
+
+macosx: 
+	make prog PLAT=$@
+
+linux: 
+	make prog PLAT=$@
+
+djgpp: 
+	make prog PLAT=$@
+
+mingw: 
+	make prog PLAT=$@
+
+none:
+	@echo "Please do 'make PLATFORM' where PLATFORM is one of these:"
+	@echo "   $(PLATS)"
+
+prog: $(PROG)$(PROG_EXT)
 
 $(PROG)$(PROG_EXT): $(OBJS)
 	$(CC) $(OBJS) -o $(PROG)$(PROG_EXT) $(LDFLAGS)
+	$(STRIP) $(PROG)$(PROG_EXT)
 
 pal_posixish.o: pal_posixish.c $(wildcard *.h) $(MFILE)
 	$(CC) $(CFLAGS) -c pal_posixish.c
@@ -57,9 +107,10 @@ main.o: main.c $(wildcard *.h) $(MFILE)
 ram.o: ram.c $(wildcard *.h) $(MFILE)
 	$(CC) $(CFLAGS) -c ram.c
 
-rebuild: clean all
+globals.o: globals.c $(wildcard *.h) $(MFILE)
+	$(CC) $(CFLAGS) -c globals.c
 
 .PHONY: clean
 clean:
 	$(RM) *.o
-	$(RM) $(PROG) $(PROG)$(PROG_EXT)
+	$(RM) $(PROG) $(PROG)$(PROG_EXT) 
