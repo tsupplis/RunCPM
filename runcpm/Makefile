@@ -1,30 +1,40 @@
 # pal Makefile for runcpm
 
-PROG = runcpm
+# Flags to pass to the compiler - add "-g" to include debug information
+#CFLAGS=-Wall -g -fPIC -I../lua -DEMULATOR_HAS_LUA
+#LDFLAGS=-lncurses -L../lua -llua
+#PROG_EXT=
 
+CFLAGS=-Wall -O0 -fPIC 
+LDFLAGS=-lncurses
+PROG_EXT=
+
+#CC=i586-pc-msdosdjgpp-gcc
+#CFLAGS=-Wall -O0
+#PROG_EXT=.exe
+
+#CC=i586-mingw32-gcc -mconsole
+#CFLAGS=-Wall -O0
+#PROG_EXT=.exe
+
+PROG = runcpm
 MFILE = Makefile
 
-# Flags to pass to the compiler - add "-g" to include debug information
-CFLAGS =-Wall -g -fPIC -I../lua
-#CFLAGS =-Wall -O0 -fPIC 
-
-LDFLAGS = -lncurses -L../lua -llua
-
 # Objects to build
-OBJS = ram.o cpu.o main.o cpm.o disk.o pal.o globals.o pal_posix.o luah.o
+OBJS = ram.o cpu.o main.o cpm.o disk.o pal.o globals.o pal_posixish.o luah.o
 
 # Clean up program
 RM = rm -f
 
 #------------------------------------------------------------------------
 
-all: $(PROG)
+all: $(PROG)$(PROG_EXT)
 
-$(PROG): $(OBJS)
-	$(CC) $(OBJS) -o $(PROG) $(LDFLAGS)
+$(PROG)$(PROG_EXT): $(OBJS)
+	$(CC) $(OBJS) -o $(PROG)$(PROG_EXT) $(LDFLAGS)
 
-pal_posix.o: pal_posix.c $(wildcard *.h) $(MFILE)
-	$(CC) $(CFLAGS) -c pal_posix.c
+pal_posixish.o: pal_posixish.c $(wildcard *.h) $(MFILE)
+	$(CC) $(CFLAGS) -c pal_posixish.c
 
 luah.o: luah.c $(wildcard *.h) $(MFILE)
 	$(CC) $(CFLAGS) -c luah.c
@@ -52,4 +62,4 @@ rebuild: clean all
 .PHONY: clean
 clean:
 	$(RM) *.o
-	$(RM) $(PROG)
+	$(RM) $(PROG) $(PROG)$(PROG_EXT)

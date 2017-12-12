@@ -10,17 +10,28 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#ifdef EMULATOR_OS_DOS
+#include <conio.h>
+#include <dir.h>
+#include <dirent.h>
+#endif
+
+#ifdef EMULATOR_OS_WIN32
+#define _CRT_SECURE_NO_WARNINGS
+#include <windows.h>
+#include <stdio.h>
+#include <conio.h>
+#endif
+
 #define TO_HEX(x)   (x < 10 ? x + 48 : x + 87)
 
-/* Externals for abstracted functions need to go here */
 FILE* pal_fopen_r(uint8_t *filename);
 int pal_fseek(FILE *file, long delta, int origin);
 long pal_ftell(FILE *file);
 long pal_fread(void *buffer, long size, long count, FILE *file);
 int pal_fclose(FILE *file);
 
-
-#ifndef ARDUINO
+#ifndef EMULATOR_OS_ARDUINO
 
 uint8_t pal_init() {
     return 1;
@@ -283,12 +294,33 @@ uint8_t pal_write_rand(uint8_t *filename, long fpos) {
 	return(result);
 }
 
+#ifdef EMULATOR_OS_WIN32
+uint8_t pal_truncate(char *fn, uint8_t rc) {
+	uint8_t result = 0x00;
+	LARGE_INTEGER fp;
+	fp.QuadPart = rc * 128;
+	wchar_t filename[15];
+	MultiByteToWideChar(CP_ACP, 0, fn, -1, filename, 4096);
+	HANDLE fh = CreateFileW(filename, GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+	if (fh == INVALID_HANDLE_VALUE) {
+		result = 0xff;
+	} else {
+		if (SetFilePointerEx(fh, fp, NULL, FILE_BEGIN) == 0 || SetEndOfFile(fh) == 0)
+			result = 0xff;
+	}
+	CloseHandle(fh);
+	return(result);
+}
+#endif
+
+#if defined(EMULATOR_OS_POSIX) || defined(EMULATOR_OS_DOS)
 uint8_t pal_truncate(char *fn, uint8_t rc) {
 	uint8_t result = 0x00;
 	if (truncate(fn, rc * 128))
 		result = 0xff;
 	return(result);
 }
+#endif
 
 #ifdef EMULATOR_USER_SUPPORT
 void pal_make_user_dir() {
@@ -296,13 +328,188 @@ void pal_make_user_dir() {
 	uint8_t u_folder = toupper(TO_HEX(glb_user_code));
 
 	uint8_t path[4] = { d_folder, GLB_FOLDER_SEP, u_folder, 0 };
+#ifdef EMULATOR_OS_DOS
 	mkdir((char*)path, S_IRUSR | S_IWUSR | S_IXUSR);
+#endif
+#ifdef EMULATOR_OS_WIN32
+	mkdir((char*)path);
+#endif
+#ifdef EMULATOR_OS_POSIX
+	mkdir((char*)path, S_IRUSR | S_IWUSR | S_IXUSR);
+#endif
 }
 #endif
 
 
+#ifdef EMULATOR_OS_DOS 
+
+void pal_console_init(void) {
+}
+
+void pal_console_reset(void) {
+
+}
+
+int pal_kbhit(void) {
+    return kbhit();
+}
+
+uint8_t pal_getch(void) {
+	return getch();
+}
+
+uint8_t pal_getche(void) {
+	return getche();
+}
+
+void pal_clrscr(void) {
+    clrscr();
+}
+
+void pal_putch(uint8_t ch) {
+	putch(ch);
+}
+
+struct ffblk fnd;
+
+uint8_t pal_find_first(uint8_t isdir) {
+	uint8_t result = 0xff;
+	uint8_t found;
+
+	fcb_hostname_to_fcbname(glb_file_name, glb_pattern);
+	found = findfirst((char*)glb_file_name, &fnd, 0);
+	if (found == 0) {
+		if (isdir) {
+			fcb_hostname_to_fcb(glb_dma_addr, (uint8_t*)fnd.ff_name);
+			ram_write(glb_dma_addr, 0);	// Sets the user of the requested file correctly on DIR entry
+		}
+		ram_write(GLB_TMP_FCB_ADDR, glb_file_name[0] - '@');
+		fcb_hostname_to_fcb(GLB_TMP_FCB_ADDR, (uint8_t*)fnd.ff_name);
+		result = 0x00;
+	}
+	return(result);
+}
+
+uint8_t pal_find_next(uint8_t isdir) {
+	uint8_t result = 0xff;
+	uint8_t more;
+
+	fcb_hostname_to_fcbname((uint8_t*)fnd.ff_name, glb_fcb_name);
+	more = findnext(&fnd);
+	if (more == 0) {
+		if (isdir) {
+			fcb_hostname_to_fcb(glb_dma_addr, (uint8_t*)fnd.ff_name);
+			ram_write(glb_dma_addr, 0);	// Sets the user of the requested file correctly on DIR entry
+		}
+		ram_write(GLB_TMP_FCB_ADDR, glb_file_name[0] - '@');
+		fcb_hostname_to_fcb(GLB_TMP_FCB_ADDR, (uint8_t*)fnd.ff_name);
+		result = 0x00;
+	}
+	return(result);
+}
+
+#endif
+
 /* Console abstraction functions */
 /*===============================================================================*/
+
+#ifdef EMULATOR_OS_WIN32
+
+BOOL _signal_handler(DWORD signal) {
+	BOOL result = FALSE;
+	if (signal == CTRL_C_EVENT) {
+		_ungetch(3);
+		result = TRUE;
+	}
+	return(result);
+}
+
+void pal_console_init(void) {
+	HANDLE hConsoleHandle = GetStdHandle(STD_INPUT_HANDLE);
+	DWORD dwMode = ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT;
+
+	SetConsoleMode(hConsoleHandle, dwMode);
+	SetConsoleCtrlHandler((PHANDLER_ROUTINE)_signal_handler, TRUE);
+}
+
+void pal_console_reset(void) {
+
+}
+
+int pal_kbhit(void) {
+    return _kbhit();
+}
+
+uint8_t pal_getch(void) {
+	return _getch();
+}
+
+uint8_t pal_getche(void) {
+	return _getche();
+}
+
+void pal_clrscr(void) {
+    system("cls");
+}
+
+void pal_putch(uint8_t ch) {
+	_putch(ch);
+}
+
+
+int dir_pos;
+WIN32_FIND_DATA find_file_data;
+HANDLE h_find;
+
+uint8_t pal_find_next(uint8_t isdir) {
+	uint8_t result = 0xff;
+	uint8_t found = 0;
+	uint8_t more = 1;
+
+	if (dir_pos == 0) {
+		h_find = FindFirstFile((LPCSTR)glb_file_name, &find_file_data);
+	} else {
+		more = FindNextFile(h_find, &find_file_data);
+	}
+
+	while (h_find != INVALID_HANDLE_VALUE && more) {	// Skips folders and long file names
+		if (find_file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+			more = FindNextFile(h_find, &find_file_data);
+			continue;
+		}
+		if (find_file_data.cAlternateFileName[0] != 0) {
+			if (find_file_data.cFileName[0] != '.')	// Keeps files that are extension only
+			{
+				more = FindNextFile(h_find, &find_file_data);
+				continue;
+			}
+		}
+		found++; dir_pos++;
+		break;
+	}
+	if (found) {
+		if (isdir) {
+			fcb_hostname_to_fcb(glb_dma_addr, (uint8_t*)&find_file_data.cFileName[0]); // Create fake DIR entry
+			ram_write(glb_dma_addr, 0);	// Sets the user of the requested file correctly on DIR entry
+		}
+		ram_write(GLB_TMP_FCB_ADDR, glb_file_name[0] - '@');							// Set the requested drive onto the tmp FCB
+		fcb_hostname_to_fcb(GLB_TMP_FCB_ADDR, (uint8_t*)&find_file_data.cFileName[0]); // Set the file name onto the tmp FCB
+		result = 0x00;
+	} else {
+		FindClose(h_find);
+	}
+	return(result);
+}
+
+uint8_t pal_find_first(uint8_t isdir) {
+
+	dir_pos = 0;
+	return(pal_find_next(isdir));
+}
+
+#endif
+
+#ifdef EMULATOR_OS_POSIX
 
 #include <ncurses.h>
 #include <poll.h>
@@ -331,6 +538,7 @@ void pal_console_reset(void) {
 	tcsetattr(0, TCSANOW, &_old_term);
 }
 
+
 int pal_kbhit(void) {
 	struct pollfd pfds[1];
 
@@ -343,6 +551,7 @@ int pal_kbhit(void) {
 uint8_t pal_getch(void) {
 	return getchar();
 }
+
 
 void pal_putch(uint8_t ch) {
 	putchar(ch);
@@ -412,5 +621,7 @@ uint8_t pal_find_first(uint8_t isdir) {
 	fcb_hostname_to_fcbname(glb_file_name, glb_pattern);
 	return(pal_find_next(isdir));
 }
+
+#endif
 
 #endif

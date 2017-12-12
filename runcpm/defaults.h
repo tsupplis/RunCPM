@@ -1,15 +1,31 @@
 #ifndef _DEFAULTS_H
 #define _DEFAULTS_H
 
+#ifdef ARDUINO
+#define EMULATOR_OS_ARDUINO
+#define EMULATOR_HOSTOS     0x01
+#endif
+
+#ifdef _WIN32
+#define EMULATOR_OS_WIN32
+#define EMULATOR_HOSTOS     0x03
+#endif
+
+#ifdef DJGPP
+#define EMULATOR_OS_DOS
+#define EMULATOR_HOSTOS     0x04
+#endif
+
+#if !defined(_WIN32) && !defined(ARDUINO) && !defined(DJGPP)
+#define EMULATOR_OS_POSIX
+#define EMULATOR_HOSTOS     0x02
+#endif
 
 #define EMULATOR_RAM_SIZE   64
 
-#ifdef ARDUINO
+#ifdef EMULATOR_OS_ARDUINO
 //#define RAM_SPI
 #define EMULATOR_LED        13
-#define EMULATOR_HOSTOS     0x01
-#else
-#define EMULATOR_HOSTOS     0x02
 #endif
 
 #ifdef RAM_SPI
@@ -18,7 +34,7 @@
 #define RAM_SPI_CHIP SRAM_23LC1024
 #endif
 
-#ifdef ARDUINO
+#ifdef EMULATOR_OS_ARDUINO
 #define SD_SPI_CS 4
 #endif
 

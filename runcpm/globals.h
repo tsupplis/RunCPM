@@ -5,7 +5,12 @@
 
 #define GLB_STR_HELPER(x) #x
 #define GLB_STR(x) GLB_STR_HELPER(x)
+
+#if defined(EMULATOR_OS_DOS) || defined(EMULATOR_OS_WIN32)
+#define GLB_FOLDER_SEP '\\'
+#else
 #define GLB_FOLDER_SEP '/'
+#endif
 
 //// Size of the allocated pages (Minimum size = 1 page = 256 bytes)
 #define GLB_BIOS_PAGE           (EMULATOR_RAM_SIZE*1024 - 256)

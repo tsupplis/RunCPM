@@ -300,7 +300,6 @@ void cpm_bios(void) {
 
 	switch (ch) {
 	case 0x00:
-        fprintf(stderr, "------ cpu status 1\n");
 		cpu_status = 1;         // 0 - BOOT - Ends RunCPM
 		break;
 	case 0x03:
