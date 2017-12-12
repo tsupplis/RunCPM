@@ -8,12 +8,12 @@
 
 #ifdef _WIN32
 #define EMULATOR_OS_WIN32
-#define EMULATOR_HOSTOS     0x03
+#define EMULATOR_HOSTOS     0x00
 #endif
 
 #ifdef DJGPP
 #define EMULATOR_OS_DOS
-#define EMULATOR_HOSTOS     0x04
+#define EMULATOR_HOSTOS     0x03
 #endif
 
 #if !defined(_WIN32) && !defined(ARDUINO) && !defined(DJGPP)

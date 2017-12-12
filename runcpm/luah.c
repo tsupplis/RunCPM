@@ -156,11 +156,11 @@ static uint8_t luah_run_script(char *filename) {
 
 	// Register Lua functions
 	lua_register(L, "BdosCall", luah_bdos_call);
-	lua_register(L, "ram_read", lua_ram_read);
-	lua_register(L, "ram_write", lua_ram_write);
-	lua_register(L, "ram_read16", lua_ram_read16);
-	lua_register(L, "ram_write16", lua_ram_write16);
-	lua_register(L, "read_reg", lua_read_reg);
+	lua_register(L, "RamRead", lua_ram_read);
+	lua_register(L, "RamWrite", lua_ram_write);
+	lua_register(L, "RamRead16", lua_ram_read16);
+	lua_register(L, "RamWrite16", lua_ram_write16);
+	lua_register(L, "ReadReg", lua_read_reg);
 	lua_register(L, "WriteReg", lua_write_reg);
 
 	int result = luaL_loadfile(L, filename);
