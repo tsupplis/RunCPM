@@ -6,7 +6,7 @@
 
 #ifdef ARDUINO
 //#define RAM_SPI
-#define EMULATOR_LED        2
+#define EMULATOR_LED        13
 #define EMULATOR_HOSTOS     0x01
 #else
 #define EMULATOR_HOSTOS     0x02
@@ -22,7 +22,7 @@
 #define SD_SPI_CS 4
 #endif
 
-#define EMULATOR_HAS_LUA
+//#define EMULATOR_HAS_LUA
 
 /* Definitions for file/console based debugging */
 //#define DEBUG

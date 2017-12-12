@@ -350,7 +350,7 @@ uint8_t pal_find_next(uint8_t isdir) {
 
 uint8_t pal_find_first(uint8_t isdir) {
 #ifdef EMULATOR_USER_SUPPORT
-	uint8_t path[4] = { '?', FOLDER_SEP, '?', 0 };
+	uint8_t path[4] = { '?', GLB_FOLDER_SEP, '?', 0 };
 #else
 	uint8_t path[2] = { '?', 0 };
 #endif
