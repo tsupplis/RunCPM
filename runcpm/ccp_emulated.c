@@ -498,7 +498,9 @@ static void ccp_cmd_error() {
 static void ccp_read_input(void) {
 	uint8_t i;
 	int j;
+	int bo;
 	uint8_t recs = 0;
+    char buf[16+1];
 	uint8_t chars;
 
 	if (ccp_s_flag) {                                   // Are we running a submit?
@@ -515,12 +517,21 @@ static void ccp_read_input(void) {
 				ram_write(CCP_IN_BUFFER + i + 1, 0);
 
 				j=0;
+                bo=0;
 				while(1) {
 					uint8_t c=ram_read(CCP_IN_BUFFER+2+j++);
+                    buf[bo++]=c;
 					if(!c) {
+                        buf[bo]=0;
+                        bo=0;
+					    pal_puts(buf);
 						break;
 					}
-					pal_putch(c);
+                    if(bo==16) {
+                        buf[bo]=0;
+                        bo=0;
+					    pal_puts(buf);
+                    }
 				}
 				ram_write(GLB_BATCH_FCB_ADDR + 15, recs);       // Prepare the file to be truncated
 				ccp_bdos(CCP_F_CLOSE, GLB_BATCH_FCB_ADDR);      // And truncates it

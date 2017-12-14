@@ -367,7 +367,7 @@ void pal_clrscr(void) {
 }
 
 void pal_putch(uint8_t ch) {
-	putch(ch);
+	putchar(ch);
 }
 
 struct ffblk fnd;
