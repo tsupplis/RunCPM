@@ -6,7 +6,7 @@ RunCPM is fully written in C and in a modular way, so porting to other platforms
 If you miss powerful programs like Wordstar, dBaseII, MBASIC and others, then RunCPM is for you. It is very stable and fun to use.<br>
 RunCPM emulates CP/M 2.2 from Digital Research as close as possible.
 
-RunCPM builds on Visual Studio 2013 or later. Posix builds use GCC/LLVM. It can also be built on the Arduino IDE and even on DJGPP for DOS. It can be built also on Cygwin (posix) and Mingw. Makefiles are provided with the distribution.
+RunCPM builds on MINGW32. Posix builds use GCC/LLVM. It can also be built on the Arduino IDE and even on DJGPP for DOS. It can be built also on Cygwin (posix) and Mingw. Makefiles are provided with the distribution.
 
 ## Arduino
 
@@ -14,9 +14,11 @@ RunCPM builds on Arduino IDE 1.6.6 or later.<br>
 RunCPM so far runs on the Arduino DUE and on the Teensy 3.5 and 3.6, as it requires a fair amount of RAM to run (64K used to be a lot back in those days).<br>
 If using the Arduino DUE, RunCPM also needs a SD (or microSD) card shield to place the CP/M files in. The Teensy has on on-board SD adapter.
 
+It incorporates a RAM SPI Interface to use external memory on smaller micro controllers (64K or less)
+
 Arduino digital and analog read/write support was added by Krzysztof Kliś via BDOS calls (see the bottom of cpm.h file for details).
 
-LED blink codes: Arduino LED (pin 13) will blink fast when RunCPM is waiting for a serial connection and will send two repeating short blinks when RunCPM has exited (CPU halted). 
+LED blink codes: Arduino LED (pin 13) will blink fast when RunCPM is waiting for a serial connection and will send two repeating short blinks when RunCPM has exited (CPU halted).
 
 ## Building
 
@@ -24,12 +26,13 @@ RunCPM builds natively on Visual Studio.
 
 For building on other systems run "make yyy", where "yyy" is:
 
-* **dos** - when building with DJGPP under MS-DOS,
-* **mingw** - when building with MinGW under Windows,
-* **posix** - when building under Linux, FreeBSD, Mac OS X, etc,
-* **tdm** - when building with TDM-GCC under Windows.
+* **djgpp** - when building with DJGPP under MS-DOS.
+* **mingw** - when building with MinGW under Windows.
+* **linux** - when building under Linux.
+* **macosx** - when building under macosx.
 
-For Linux and FreeBSD the ncurses-dev package is required. On Mac OS X, install it using "brew install ncurses".
+
+ncurses required on posix systems
 
 ## Getting Started
 

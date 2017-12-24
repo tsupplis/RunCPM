@@ -30,7 +30,7 @@
 
 #ifdef RAM_SPI
 #define RAM_SPI_PERIPHERAL    SPI
-#define RAM_SPI_CS   10
+#define RAM_SPI_CS   12
 #define RAM_SPI_CHIP SRAM_23LC1024
 #endif
 

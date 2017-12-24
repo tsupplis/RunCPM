@@ -17,12 +17,14 @@
 
 uint8_t pal_init() {
     pinMode(EMULATOR_LED, OUTPUT);
-	digitalWrite(EMULATOR_LED, LOW);
+	digitalWrite(EMULATOR_LED, HIGH);
+    delay(2000);
 #ifdef BUILTIN_SDCARD
     return SD.begin(BUILTIN_SDCARD);
 #else
     return SD.begin(SD_SPI_CS);
 #endif
+    digitalWrite(EMULATOR_LED, HIGH);
 }
 
 void pal_digital_set(uint16_t ind, uint16_t state) {
